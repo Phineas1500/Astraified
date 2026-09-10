@@ -6,8 +6,9 @@ import { resolve } from "node:path";
 import { SourceError } from "./errors.js";
 import { extractSources, MAX_UPLOAD_BYTES } from "./sources.js";
 import { generateMission, MODEL } from "./generation.js";
+import { createEpisodeRouter, type EpisodeJobOptions } from "./episode-jobs.js";
 
-export function createApp() {
+export function createApp(options: { episodeJobs?: EpisodeJobOptions | false } = {}) {
   const app = express();
   app.disable("x-powered-by");
   const upload = multer({
@@ -28,6 +29,8 @@ export function createApp() {
       configured: Boolean(process.env.OPENAI_API_KEY?.trim()),
     }),
   );
+  if (options.episodeJobs !== false)
+    app.use("/api/episodes", createEpisodeRouter(options.episodeJobs));
   app.post(
     "/api/generate",
     (request, response, next) => {

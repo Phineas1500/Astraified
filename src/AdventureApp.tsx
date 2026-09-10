@@ -54,6 +54,7 @@ import { playCue } from "./adventure/audio";
 import { Modal } from "./components/Modal";
 import "./adventure/adventure.css";
 const LegacyApp = lazy(() => import("./App"));
+const EpisodeStudio = lazy(() => import("./EpisodeStudio"));
 const RoomCanvas = lazy(() => import("./adventure/RoomCanvas"));
 const SAVE_KEY = "astraified:bramble-bay:v1";
 const roomList = Object.keys(ROOMS) as RoomId[];
@@ -77,7 +78,7 @@ function initial() {
 
 export default function AdventureApp() {
   const [state, setState] = useState<AdventureState>(initial);
-  const [screen, setScreen] = useState<"cover" | "game" | "legacy">("cover");
+  const [screen, setScreen] = useState<"cover" | "game" | "legacy" | "studio">("cover");
   const [selected, setSelected] = useState<ItemId | null>(null);
   const [dialogue, setDialogue] = useState<Dialogue | null>(null);
   const [line, setLine] = useState(0);
@@ -343,6 +344,12 @@ export default function AdventureApp() {
         : "The investigation";
   const dialogCharacter = dialogue ? portrait[dialogue.speaker] : undefined;
 
+  if (screen === "studio")
+    return (
+      <Suspense fallback={<div className="adv-loading">Opening the adventure studio…</div>}>
+        <EpisodeStudio onBack={() => setScreen("cover")} />
+      </Suspense>
+    );
   if (screen === "legacy")
     return (
       <div className="adv-legacy">
@@ -385,12 +392,20 @@ export default function AdventureApp() {
         </span>
         <div className="adv-top-actions">
           {screen === "cover" ? (
-            <button
-              className="adv-studio-link"
-              onClick={() => setScreen("legacy")}
-            >
-              <Sparkles size={16} /> Source studio <ArrowRight size={14} />
-            </button>
+            <>
+              <button
+                className="adv-studio-link"
+                onClick={() => setScreen("studio")}
+              >
+                <Sparkles size={16} /> Create an adventure <ArrowRight size={14} />
+              </button>
+              <button
+                className="adv-studio-link"
+                onClick={() => setScreen("legacy")}
+              >
+                Earlier experiments
+              </button>
+            </>
           ) : (
             <>
               <span className={`adv-save ${saveFailed ? "is-warning" : ""}`}>

@@ -343,7 +343,7 @@ describe("local API boundaries (no paid calls)", () => {
   let base: string;
   beforeAll(async () => {
     server = await new Promise<Server>((resolve, reject) => {
-      const running = createApp().listen(0, "127.0.0.1", (error) =>
+      const running = createApp({ episodeJobs: false }).listen(0, "127.0.0.1", (error) =>
         error ? reject(error) : resolve(running),
       );
     });
