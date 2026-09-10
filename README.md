@@ -1,5 +1,7 @@
 # Astraified
 
+<https://astraified.vercel.app/>
+
 Astraified turns explanatory sources into learning games. The main **adventure studio** lets you choose **3D exploration** or **Point & click**, create from the same source form, and play both formats inside the same page. Generated games share one library, while each game keeps its own progress.
 
 - **3D exploration:** walk and jump around a harbor as Piper, talk with Moss and Bea, carry objects, and apply one source-grounded idea in two connected cases. The generator creates either an experiment with physical controls and computed gauges or source-linked cards you carry into meaningful categories. It uses the existing island and characters.
