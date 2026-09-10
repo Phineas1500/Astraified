@@ -1,4 +1,4 @@
-import { verifyTransformerEvidence } from "../domain/transformers";
+import { verifyPuzzleEvidence } from "./puzzle-adapters";
 import type {
   EpisodeAction,
   EpisodeCondition,
@@ -115,14 +115,14 @@ export function transitionEpisode(
       state.solvedPuzzles.includes(action.puzzle)
     )
       return unchanged("Open this apparatus in the world before testing it.");
-    if (!verifyTransformerEvidence(puzzle.config, action.evidence))
+    if (!verifyPuzzleEvidence(puzzle.config, action.evidence))
       return unchanged(
         "The apparatus still needs a successful controlled trial.",
       );
     add(state.solvedPuzzles, puzzle.id);
     state.activePuzzle = undefined;
     return finish({
-      message: "Repair verified. Your evidence is saved in the case.",
+      message: "Your evidence is verified and saved in the case.",
     });
   }
   const scene = pkg.scenes.find((candidate) => candidate.id === state.scene);

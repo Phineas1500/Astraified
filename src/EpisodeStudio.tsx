@@ -59,8 +59,10 @@ const terminal = (job: EpisodeJobView) =>
 const stageLabel = {
   source: "Reading your source",
   learning: "Finding the ideas worth playing",
+  mechanics: "Building your experiments",
   story: "Writing the mystery",
   validation: "Checking the case",
+  review: "Reviewing the lesson against your source",
   ready: "Your adventure is ready",
 };
 
@@ -72,9 +74,7 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
   const [sourceUrl, setSourceUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [level, setLevel] = useState("High school / introductory college");
-  const [topic, setTopic] = useState(
-    "Transformer neural networks: sequence position, attention, and causal masking",
-  );
+  const [topic, setTopic] = useState("");
   const [jobId, setJobId] = useState(savedJob);
   const [job, setJob] = useState<EpisodeJobView | null>(null);
   const [busy, setBusy] = useState(false);
@@ -196,6 +196,17 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
     }
   }
   const running = !!job && !terminal(job);
+  const jobStages =
+    job?.pipeline === "general-v1"
+      ? ([
+          "learning",
+          "mechanics",
+          "story",
+          "validation",
+          "review",
+          "ready",
+        ] as const)
+      : (["learning", "story", "validation", "ready"] as const);
   const sourceReady =
     sourceMode === "text"
       ? sourceText.trim().length >= 120
@@ -320,8 +331,9 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
             </span>
             <h2>What shall we discover?</h2>
             <p>
-              Start with a focused explanation of transformers. This first
-              generator covers sequence position, attention, and causal masking.
+              Bring a chapter, article, or set of notes on a topic you want to
+              understand. Your source becomes experiments, evidence, and a
+              mystery you solve by learning how things work.
             </p>
             <div
               className="ep-source-tabs"
@@ -362,7 +374,10 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                   <span>{sourceText.length.toLocaleString()} characters</span>
                   <button
                     type="button"
-                    onClick={() => setSourceText(TRANSFORMER_STARTER)}
+                    onClick={() => {
+                      setSourceText(TRANSFORMER_STARTER);
+                      setTopic("Transformer neural networks");
+                    }}
                   >
                     Use Transformer starter notes
                   </button>
@@ -379,13 +394,37 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                   onChange={(e) => setSourceUrl(e.target.value)}
                   placeholder="https://…"
                 />
-                <button
-                  className="ep-source-example"
-                  type="button"
-                  onClick={() => setSourceUrl(TRANSFORMER_SOURCE_URL)}
-                >
-                  Use Attention Is All You Need
-                </button>
+                <div className="ep-button-row">
+                  {[
+                    [
+                      "Explore derivatives",
+                      "https://openstax.org/books/calculus-volume-1/pages/3-1-defining-the-derivative",
+                      "Derivatives: instantaneous rate of change and tangent slopes",
+                    ],
+                    [
+                      "Explore the Constitution",
+                      "https://www.archives.gov/founding-docs/constitution/what-does-it-say",
+                      "The US Constitution: three branches and checks and balances",
+                    ],
+                    [
+                      "Explore Transformers",
+                      TRANSFORMER_SOURCE_URL,
+                      "Transformer neural networks",
+                    ],
+                  ].map(([label, url, focus]) => (
+                    <button
+                      className="ep-source-example"
+                      type="button"
+                      key={url}
+                      onClick={() => {
+                        setSourceUrl(url);
+                        setTopic(focus);
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
                 <p className="ep-small">
                   Readable public pages and text PDFs. Pages requiring sign-in
                   are not supported.
@@ -411,12 +450,13 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                 </p>
               </>
             )}
-            <label htmlFor="ep-focus">Focus</label>
+            <label htmlFor="ep-focus">Focus (optional)</label>
             <input
               id="ep-focus"
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               maxLength={300}
+              placeholder="What would you most like to understand?"
             />
             <label htmlFor="ep-level">Who is playing?</label>
             <select
@@ -425,15 +465,18 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
               onChange={(e) => setLevel(e.target.value)}
             >
               <option>High school / introductory college</option>
-              <option>College computer science</option>
+              <option>College level</option>
               <option>Curious beginner with basic algebra</option>
             </select>
             <p className="ep-small ep-source-disclosure">
               Creating sends extracted text to OpenAI using your configured API
               credits. A focused episode uses up to 24,000 source characters.
+              Generation can take several minutes; refreshing this page does not
+              cancel an accepted job.
               Completed stages are kept on this computer so interrupted work can
-              resume. This version creates new cases using the Bramble Bay art
-              set and three reviewed Transformer instruments.
+              resume. Adventures share the Bramble Bay art set, with activities
+              designed from your source. A focused chapter works best; a whole
+              course needs several adventures.
             </p>
             <button
               className="ep-primary ep-generate"
@@ -474,37 +517,32 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                           : stageLabel[job.stage]}
                 </h2>
                 <ol className="ep-job-stages">
-                  {(["learning", "story", "validation", "ready"] as const).map(
-                    (stage, index) => {
-                      const current = [
-                        "learning",
-                        "story",
-                        "validation",
-                        "ready",
-                      ].indexOf(job.stage);
-                      return (
-                        <li
-                          className={
-                            index < current || job.status === "ready"
-                              ? "ep-stage-done"
-                              : index === current
-                                ? "ep-stage-current"
-                                : ""
-                          }
-                          key={stage}
-                        >
-                          <span>
-                            {index < current || job.status === "ready" ? (
-                              <Check size={15} />
-                            ) : (
-                              index + 1
-                            )}
-                          </span>
-                          {stageLabel[stage]}
-                        </li>
-                      );
-                    },
-                  )}
+                  {jobStages.map((stage, index) => {
+                    const current = (jobStages as readonly string[]).indexOf(
+                      job.stage,
+                    );
+                    return (
+                      <li
+                        className={
+                          index < current || job.status === "ready"
+                            ? "ep-stage-done"
+                            : index === current
+                              ? "ep-stage-current"
+                              : ""
+                        }
+                        key={stage}
+                      >
+                        <span>
+                          {index < current || job.status === "ready" ? (
+                            <Check size={15} />
+                          ) : (
+                            index + 1
+                          )}
+                        </span>
+                        {stageLabel[stage]}
+                      </li>
+                    );
+                  })}
                 </ol>
                 <progress
                   value={job.progress}
@@ -516,7 +554,7 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                     <h3>The ideas in your case</h3>
                     <ul>
                       {job.learningPlan.objectives.map((o) => (
-                        <li key={o.family}>{o.title}</li>
+                        <li key={"id" in o ? o.id : o.family}>{o.title}</li>
                       ))}
                     </ul>
                   </div>
@@ -526,6 +564,16 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                     {warning}
                   </p>
                 ))}
+                {job.episode?.generation?.review && (
+                  <details className="ep-usage">
+                    <summary>Lesson review</summary>
+                    <p>{job.episode.generation.review.summary}</p>
+                    <p>
+                      AI review checks the lesson against the source. It does
+                      not replace an instructor’s review or establish mastery.
+                    </p>
+                  </details>
+                )}
                 {job.error && (
                   <p className="ep-error" role="alert">
                     {job.error.message}

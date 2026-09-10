@@ -1,8 +1,8 @@
 # Generating adventures from sources
 
-Design proposal, September 10, 2026. This document describes the next increment; these generation capabilities are not yet implemented. Bramble Bay remains the authored reference case.
+Historical design proposal, September 10, 2026. The reusable engine and Transformer increment described here have since been implemented. The default generator now creates source-specific simulation/evidence activities for arbitrary topics through a bounded interpreter. See [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) and [GENERALIZATION_QA.md](GENERALIZATION_QA.md) for current behavior and verification; the proposal below records the earlier design and longer-term work.
 
-The selected first generated topic is **transformer neural networks**, for high-school/introductory-college learners. The initial scope is sequence position, attention and causal masking. It requires a new reviewed mechanic family; the current circuit/routing generator cannot teach this topic yet.
+The selected first generated topic was **transformer neural networks**, for high-school/introductory-college learners. The initial scope was sequence position, attention and causal masking. Its dedicated reviewed mechanic family remains available in authored and legacy generated cases.
 
 ## Recommendation
 

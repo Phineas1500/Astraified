@@ -10,6 +10,8 @@ import type {
 } from "../src/episodes/types.js";
 import { validateEpisodePackage } from "../src/episodes/schema.js";
 import { SourceError } from "./errors.js";
+import { createModelClient } from "./model-client.js";
+import type { TransformerConfig } from "../src/domain/transformers.js";
 import { MODEL } from "./generation.js";
 
 export { MODEL as EPISODE_MODEL };
@@ -319,7 +321,7 @@ export function compileConditions(
 }
 
 export interface ReviewedPuzzle {
-  config: EpisodePackage["puzzles"][number]["config"];
+  config: TransformerConfig;
   evidence: unknown;
 }
 export type ReviewedPuzzles = Record<ObjectiveFamily, ReviewedPuzzle>;
@@ -519,10 +521,9 @@ async function request<T>(
   data: unknown,
   settings: (typeof EPISODE_GENERATION_SETTINGS)[keyof typeof EPISODE_GENERATION_SETTINGS],
 ): Promise<GenerationResult<T>> {
-  const client = new OpenAI({
+  const { client, destroy } = createModelClient({
     apiKey: input.apiKey,
-    maxRetries: 0,
-    timeout: input.timeoutMs ?? settings.timeoutMs,
+    timeoutMs: input.timeoutMs ?? settings.timeoutMs,
   });
   try {
     const response = await client.responses.parse(
@@ -594,6 +595,8 @@ async function request<T>(
       "The model provider could not complete this stage. Completed checkpoints are preserved.",
       "provider_error",
     );
+  } finally {
+    await destroy();
   }
 }
 

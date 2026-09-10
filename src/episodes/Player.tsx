@@ -31,7 +31,7 @@ import {
   parseEpisodeSave,
   transitionEpisode,
 } from "./engine";
-import { TransformerPuzzle } from "./TransformerPuzzle";
+import EpisodePuzzle from "./Puzzle";
 import { Character } from "../adventure/Character";
 import { playCue } from "../adventure/audio";
 import { EpisodeArt } from "./EpisodeArt";
@@ -561,11 +561,12 @@ export default function EpisodePlayer({
           onClose={() => setPuzzle(null)}
           wide
         >
-          <TransformerPuzzle
+          <EpisodePuzzle
             key={`${episode.id}:${activePuzzle.id}`}
             config={activePuzzle.config}
             title={activePuzzle.title}
             instructions={activePuzzle.instructions}
+            sources={episode.sources}
             draft={drafts[activePuzzle.id]}
             onDraftChange={(draft) =>
               setDrafts((previous) => ({
@@ -583,10 +584,10 @@ export default function EpisodePlayer({
               if (result.state.solvedPuzzles.includes(activePuzzle.id)) {
                 setPuzzle(null);
                 setDialogue({
-                  speaker: "A working repair",
+                  speaker: "Evidence verified",
                   lines: [
                     result.message ||
-                      "The repair passed its checks. Time to see what changes in the case.",
+                      "Your investigation passed its checks. Time to see what changes in the case.",
                   ],
                 });
                 setLine(0);
@@ -595,7 +596,7 @@ export default function EpisodePlayer({
                   pendingEnding.current = true;
               } else
                 setMessage(
-                  result.message || "That repair needs another check.",
+                  result.message || "That investigation needs another check.",
                 );
             }}
             onClose={() => setPuzzle(null)}
@@ -663,9 +664,30 @@ export default function EpisodePlayer({
                   {episode.puzzles
                     .filter((p) => p.objectiveId === o.id)
                     .some((p) => state.solvedPuzzles.includes(p.id))
-                    ? "Explored through a working repair."
+                    ? "Explored through your investigation."
                     : "An idea to investigate."}
                 </p>
+                {o.claim && (
+                  <p>
+                    <SourceText text={o.claim} sources={episode.sources} />
+                  </p>
+                )}
+                {o.boundaries && (
+                  <details>
+                    <summary>Where this explanation applies</summary>
+                    <p>{o.boundaries}</p>
+                  </details>
+                )}
+                {o.evidence?.length ? (
+                  <details>
+                    <summary>Evidence in the source</summary>
+                    {o.evidence.map((e, i) => (
+                      <blockquote key={i}>
+                        <SourceText text={e.quote} sources={episode.sources} />
+                      </blockquote>
+                    ))}
+                  </details>
+                ) : null}
               </article>
             ))}
             <h3>Sources behind this case</h3>
@@ -692,19 +714,16 @@ export default function EpisodePlayer({
               </article>
             ))}
             <p className="ep-small">
-              The instruments use illustrative vectors and demonstrate selected
-              computations. They are not a trained language model. The story is
-              fiction; the linked sources explain the concepts. A completed case
-              is practice, not a measurement of lasting mastery.
+              The story is fiction. The activities use simplified models or
+              source-based interpretations; their assumptions are part of the
+              lesson. A completed case is practice, not a measurement of lasting
+              mastery.
             </p>
           </div>
         </EpisodeModal>
       )}
       {panel === "ending" && (
-        <EpisodeModal
-          title="A message worth hearing"
-          onClose={() => setPanel(null)}
-        >
+        <EpisodeModal title="Case closed" onClose={() => setPanel(null)}>
           <div className="ep-ending">
             <EpisodeArt icon="machine" active />
             <p>{episode.ending}</p>

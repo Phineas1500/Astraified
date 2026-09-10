@@ -1,9 +1,9 @@
 import { z } from "zod";
 import {
-  canonicalTransformerEvidence,
-  validateTransformerConfig,
-  verifyTransformerEvidence,
-} from "../domain/transformers";
+  canonicalPuzzleEvidence,
+  validatePuzzleConfig,
+  verifyPuzzleEvidence,
+} from "./puzzle-adapters";
 import { createEpisodeState, transitionEpisode } from "./engine";
 import type {
   EpisodeAction,
@@ -96,7 +96,14 @@ export const episodePackageSchema = z
     level: short,
     generated: z.boolean(),
     generation: z
-      .object({ model: short, createdAt: z.string().datetime() })
+      .object({
+        model: short,
+        createdAt: z.string().datetime(),
+        review: z
+          .object({ status: z.literal("passed"), summary: prose })
+          .strict()
+          .optional(),
+      })
       .strict()
       .optional(),
     sources: z
@@ -116,7 +123,23 @@ export const episodePackageSchema = z
     objectives: z
       .array(
         z
-          .object({ id, title: short, sourceIds: z.array(id).min(1).max(24) })
+          .object({
+            id,
+            title: short,
+            sourceIds: z.array(id).min(1).max(24),
+            claim: prose.optional(),
+            boundaries: prose.optional(),
+            misconception: prose.optional(),
+            evidence: z
+              .array(
+                z
+                  .object({ sourceId: id, quote: z.string().min(1).max(4000) })
+                  .strict(),
+              )
+              .min(1)
+              .max(12)
+              .optional(),
+          })
           .strict(),
       )
       .min(1)
@@ -246,8 +269,8 @@ export function certifyEpisodeSolvability(
   const witnesses = new Map<string, unknown>();
   for (const puzzle of pkg.puzzles) {
     try {
-      const evidence = canonicalTransformerEvidence(puzzle.config);
-      if (!verifyTransformerEvidence(puzzle.config, evidence))
+      const evidence = canonicalPuzzleEvidence(puzzle.config);
+      if (!verifyPuzzleEvidence(puzzle.config, evidence))
         throw new Error("reviewed witness does not verify");
       witnesses.set(puzzle.id, evidence);
     } catch (error) {
@@ -452,6 +475,20 @@ export function validateEpisodePackage(raw: unknown): EpisodeValidationResult {
     }
     for (const objective of pkg.objectives) {
       sourceRefs(objective.sourceIds, objective.id);
+      for (const evidence of objective.evidence ?? []) {
+        const source = pkg.sources.find(
+          (source) => source.id === evidence.sourceId,
+        );
+        const normalize = (text: string) => text.replace(/\s+/g, " ").trim();
+        if (
+          !objective.sourceIds.includes(evidence.sourceId) ||
+          !source ||
+          !normalize(source.text).includes(normalize(evidence.quote))
+        )
+          errors.push(
+            `Objective ${objective.id} has an unverified source quotation.`,
+          );
+      }
       if (!pkg.puzzles.some((puzzle) => puzzle.objectiveId === objective.id))
         errors.push(`Objective ${objective.id} has no puzzle.`);
     }
@@ -461,7 +498,12 @@ export function validateEpisodePackage(raw: unknown): EpisodeValidationResult {
       sourceRefs(puzzle.sourceIds, puzzle.id);
       ref(sets.objectives, puzzle.objectiveId, "puzzle objective");
       try {
-        puzzle.config = validateTransformerConfig(puzzle.config);
+        puzzle.config = validatePuzzleConfig(puzzle.config);
+        if (puzzle.config.kind === "evidence") {
+          for (const round of puzzle.config.rounds)
+            for (const card of round.cards)
+              sourceRefs(card.sourceIds, `evidence card ${card.id}`);
+        }
       } catch (error) {
         errors.push(
           `Puzzle ${puzzle.id}: ${error instanceof Error ? error.message : String(error)}`,

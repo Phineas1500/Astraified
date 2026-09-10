@@ -1,7 +1,10 @@
 import type { SourceRecord } from "../domain/types";
 import type { TransformerConfig } from "../domain/transformers";
+import type { LessonMachineConfig } from "../domain/lesson-machines";
 
-/** Closed data language: no generated code, expressions, or callbacks. */
+export type EpisodePuzzleConfig = TransformerConfig | LessonMachineConfig;
+
+/** Closed data language: generated models run through bounded interpreters. */
 export type EpisodeCondition =
   | { all: EpisodeCondition[] }
   | { any: EpisodeCondition[] }
@@ -68,9 +71,21 @@ export interface EpisodePackage {
   ending: string;
   level: string;
   generated: boolean;
-  generation?: { model: string; createdAt: string };
+  generation?: {
+    model: string;
+    createdAt: string;
+    review?: { status: "passed"; summary: string };
+  };
   sources: SourceRecord[];
-  objectives: { id: string; title: string; sourceIds: string[] }[];
+  objectives: {
+    id: string;
+    title: string;
+    sourceIds: string[];
+    claim?: string;
+    boundaries?: string;
+    misconception?: string;
+    evidence?: { sourceId: string; quote: string }[];
+  }[];
   scenes: EpisodeScene[];
   startScene: string;
   items: { id: string; name: string; description: string; icon: string }[];
@@ -86,7 +101,7 @@ export interface EpisodePackage {
     instructions: string;
     objectiveId: string;
     sourceIds: string[];
-    config: TransformerConfig;
+    config: EpisodePuzzleConfig;
   }[];
   rules: EpisodeRule[];
   hints: { when: EpisodeCondition; text: string }[];

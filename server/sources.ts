@@ -5,6 +5,7 @@ import { isIP } from "node:net";
 import { extname } from "node:path";
 import { Readability } from "@mozilla/readability";
 import { JSDOM } from "jsdom";
+import { preserveMathText } from "./math-text.js";
 import type { SourceRecord } from "../src/domain/types.js";
 import { SourceError } from "./errors.js";
 
@@ -404,6 +405,7 @@ export async function extractSources(input: SourceInput, signal?: AbortSignal) {
       if (fetched.contentType.includes("text/html")) {
         const dom = new JSDOM(text, { url: fetched.url });
         try {
+          preserveMathText(dom.window.document);
           dom.window.document
             .querySelectorAll("script,style,nav,footer,header,noscript")
             .forEach((el) => el.remove());
