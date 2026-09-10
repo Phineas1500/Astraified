@@ -1,0 +1,45 @@
+{
+  "name": "astraified",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently -k -n api,web npm:dev:api npm:dev:web",
+    "dev:web": "vite --host 127.0.0.1 --port 5173 --strictPort",
+    "dev:api": "tsx watch server/index.ts",
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest run",
+    "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort"
+  },
+  "dependencies": {
+    "@babylonjs/core": "latest",
+    "@babylonjs/loaders": "latest",
+    "@mozilla/readability": "latest",
+    "dotenv": "latest",
+    "express": "^5.1.0",
+    "jsdom": "latest",
+    "lucide-react": "latest",
+    "multer": "^2.0.2",
+    "openai": "latest",
+    "pdfjs-dist": "latest",
+    "phaser": "4.2.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@types/express": "latest",
+    "@types/jsdom": "latest",
+    "@types/multer": "latest",
+    "@types/node": "latest",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "latest",
+    "concurrently": "latest",
+    "prettier": "^3.9.6",
+    "tsx": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "vitest": "latest"
+  }
+}
