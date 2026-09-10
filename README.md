@@ -6,6 +6,8 @@ Explore six rooms, talk to four characters and a crab companion, collect and com
 
 This is the first authored case for the new adventure format. **Source studio** preserves the earlier source uploader, generated-mission library, and circuit/routing experiments. Generating new point-and-click episodes from arbitrary source material is the next milestone; the existing generator does not yet produce Bramble Bay-style cases. The agreed direction is in `POINT_AND_CLICK_DIRECTION.md`.
 
+The next-stage [source-to-adventure proposal](SOURCE_TO_ADVENTURE.md) describes reusable episode packages, source-grounded puzzle design, staged generation, artwork production and acceptance checks.
+
 ## Run locally
 
 Use Node.js **26+** with npm. This project was developed with Node 26.7.0; the lockfile pins dependencies that require a recent Node runtime.

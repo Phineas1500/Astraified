@@ -31,6 +31,8 @@ The authored episode expresses closed paths, series/parallel behavior and shared
 
 ## Next milestones
 
+The selected first generated subject is transformer neural networks. `SOURCE_TO_ADVENTURE.md` records the proposed message-machine mystery, required attention/position/masking mechanics, reusable package format and generation acceptance criteria. This is a design proposal; Transformer gameplay and source-to-adventure generation are not implemented yet.
+
 1. Observe high-school/college learners playing this case; refine clue fairness, pacing, character interactions, and independent transfer tasks.
 2. Move case-specific interaction definitions into a validated mission authoring format; generate a second source-driven episode with meaningfully different evidence and dependency relationships.
 3. Extend the creator with a direction preview, resumable generation and partial regeneration, source review, and measured usage.
