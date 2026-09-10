@@ -1,0 +1,90 @@
+.ep-format-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #396d69;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 7px;
+  border: 1px solid #c9d8cb;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  background: #e9efdf;
+}
+.ep-case-kind {
+  display: block;
+}
+.ep-format-picker {
+  display: grid;
+  gap: 9px;
+  border: 0;
+  padding: 0;
+  margin: 25px 0 14px;
+  min-width: 0;
+}
+.ep-format-picker legend {
+  font-size: 13px;
+  font-weight: 800;
+  padding: 0;
+  margin-bottom: 10px;
+}
+.ep-format-picker label {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid #d9ddc8;
+  border-radius: 7px;
+  padding: 13px 14px;
+  cursor: pointer;
+  margin: 0;
+}
+.ep-format-picker .ep-format-selected {
+  border-color: #63866e;
+  background: #edf1e3;
+  box-shadow: inset 3px 0 #63866e;
+}
+.ep-format-picker input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  flex: 0 0 auto;
+  accent-color: #396d69;
+}
+.ep-format-picker svg {
+  flex: 0 0 auto;
+  color: #396d69;
+}
+.ep-format-picker strong {
+  display: block;
+  font-size: 13px;
+}
+.ep-format-picker small {
+  display: block;
+  font-size: 11px;
+  color: #627870;
+  line-height: 1.45;
+  font-weight: 400;
+  margin-top: 3px;
+}
+.ep-format-note {
+  border-left: 2px solid #d4bd82;
+  padding-left: 13px;
+}
+.ep-player-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  padding: 40px 24px;
+}
+.ep-player-loading h1 {
+  max-width: 700px;
+  font-size: clamp(26px, 4vw, 42px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ep-studio .ep-case-art img {
+    transition: none;
+  }
+}

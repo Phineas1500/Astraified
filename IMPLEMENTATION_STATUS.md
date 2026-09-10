@@ -1,6 +1,12 @@
 # Astraified implementation status — September 10, 2026
 
-## Current product
+## Unified creator update
+
+The main page now opens a shared studio with 3D exploration and point-and-click format choices. Both formats use the same source form and mixed library, open in place, and preserve separate progress. Source-generated 3D lessons use one focused objective, two physical cases and the existing harbor kit; experiments and evidence crates consume the shared lesson interpreter without subject adapters. Generation has durable checkpoints, bounded repair and a separate model content review. The original two 3D authored episodes are also available. See `docs/UNIFIED_GAMES.md` for current capabilities and verification.
+
+**339 tests pass across 25 files.** Two real 3D source jobs produced **A Parcel of Evidence** (ecology card sorting) and **A Current Delivery** (ideal Ohm's law experiments), both with passing content reviews and complete physical browser playthroughs. Both are available alongside the existing point-and-click games in the main browser library. Detailed verification routes, usage and limitations are recorded in `docs/UNIFIED_GAMES.md`.
+
+## Earlier point-and-click milestone
 
 The cover offers the original **The Last Light at Bramble Bay**, the new **Create an adventure** studio, and **Earlier experiments**.
 

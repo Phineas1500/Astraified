@@ -9,21 +9,45 @@ import {
   Sparkles,
   Check,
   LoaderCircle,
+  Box,
+  MousePointer2,
 } from "lucide-react";
-import type { EpisodePackage } from "./episodes/types";
 import type { EpisodeJobView } from "../server/episode-jobs";
-import { validateEpisodePackage } from "./episodes/schema";
 import { TRANSFORMER_REFERENCE } from "./episodes/reference";
+import { EPISODES } from "./windpost/episodes";
+import { validateGamePackage } from "./games/schema";
+import {
+  gameIdentity,
+  gameRevisionKey,
+  type GameFormat,
+  type GamePackage,
+} from "./games/types";
+import {
+  addGameToLibrary,
+  readGameLibrary,
+  isGeneratedGame,
+  GAME_LIBRARY_KEY,
+  LEGACY_EPISODE_LIBRARY_KEY,
+  MAX_SAVED_GAMES,
+} from "./games/library";
 import {
   TRANSFORMER_SOURCE_URL,
   TRANSFORMER_STARTER,
 } from "./episodes/starter-source";
-import EpisodePlayer from "./episodes/Player";
+import GamePlayer from "./games/Player";
 import { EpisodeArt } from "./episodes/EpisodeArt";
 import "./episodes/episodes.css";
+import "./games/studio.css";
 
-const LIBRARY_KEY = "astraified:episodes:library:v1";
 const JOB_KEY = "astraified:episodes:job:v1";
+const AUTHORED_GAMES: GamePackage[] = [
+  ...EPISODES.map((episode): GamePackage => ({
+    version: 1,
+    format: "3d",
+    episode,
+  })),
+  { version: 1, format: "point-and-click", episode: TRANSFORMER_REFERENCE },
+];
 function apiError(data: { error?: unknown }, fallback: string): string {
   if (typeof data.error === "string") return data.error;
   if (
@@ -35,17 +59,23 @@ function apiError(data: { error?: unknown }, fallback: string): string {
     return data.error.message;
   return fallback;
 }
-function readLibrary(): EpisodePackage[] {
+function readLibrary(): GamePackage[] {
   try {
-    const data = JSON.parse(localStorage.getItem(LIBRARY_KEY) || "[]");
-    if (!Array.isArray(data) || data.length > 6) return [];
-    return data
-      .map((p) => validateEpisodePackage(p))
-      .filter((r) => r.valid)
-      .map((r) => r.package!);
+    return readGameLibrary(
+      localStorage.getItem(GAME_LIBRARY_KEY),
+      localStorage.getItem(LEGACY_EPISODE_LIBRARY_KEY),
+    );
   } catch {
     return [];
   }
+}
+function gameFromJob(job: EpisodeJobView): GamePackage | null {
+  const raw =
+    job.game ??
+    ((!job.format || job.format === "point-and-click") && job.episode
+      ? { version: 1, format: "point-and-click", episode: job.episode }
+      : null);
+  return validateGamePackage(raw).game ?? null;
 }
 function savedJob() {
   try {
@@ -60,15 +90,18 @@ const stageLabel = {
   source: "Reading your source",
   learning: "Finding the ideas worth playing",
   mechanics: "Building your experiments",
-  story: "Writing the mystery",
-  validation: "Checking the case",
+  story: "Building your adventure",
+  validation: "Checking the playable route",
   review: "Reviewing the lesson against your source",
   ready: "Your adventure is ready",
 };
 
 export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
   const [library, setLibrary] = useState(readLibrary);
-  const [playing, setPlaying] = useState<EpisodePackage | null>(null);
+  const libraryRef = useRef(library);
+  const [playing, setPlaying] = useState<GamePackage | null>(null);
+  const [format, setFormat] = useState<GameFormat>("3d");
+  const [readyGame, setReadyGame] = useState<GamePackage | null>(null);
   const [sourceMode, setSourceMode] = useState<"text" | "url" | "file">("text");
   const [sourceText, setSourceText] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
@@ -82,24 +115,20 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
   const [savedError, setSavedError] = useState("");
   const [pollRetry, setPollRetry] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
-  const addToLibrary = (episode: EpisodePackage) => {
-    setLibrary((previous) => {
-      const next = [
-        episode,
-        ...previous.filter((p) => p.id !== episode.id),
-      ].slice(0, 6);
-      try {
-        const serialized = JSON.stringify(next);
-        if (serialized.length > 3_000_000) throw new Error();
-        localStorage.setItem(LIBRARY_KEY, serialized);
-        setSavedError("");
-      } catch {
-        setSavedError(
-          "This adventure is ready, but your browser could not save the library. Keep this page open to play.",
-        );
-      }
-      return next;
-    });
+  const addToLibrary = (game: GamePackage) => {
+    const next = addGameToLibrary(libraryRef.current, game);
+    libraryRef.current = next;
+    setLibrary(next);
+    try {
+      if (!next.some((entry) => gameIdentity(entry) === gameIdentity(game)))
+        throw new Error();
+      localStorage.setItem(GAME_LIBRARY_KEY, JSON.stringify(next));
+      setSavedError("");
+    } catch {
+      setSavedError(
+        "This adventure is ready, but your browser could not save the library. Keep this page open to play.",
+      );
+    }
   };
   useEffect(() => {
     if (!jobId) return;
@@ -121,7 +150,15 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
         const next = data.job as EpisodeJobView;
         setJob(next);
         setError("");
-        if (next.status === "ready" && next.episode) addToLibrary(next.episode);
+        if (next.status === "ready") {
+          const completed = gameFromJob(next);
+          setReadyGame(completed);
+          if (completed) addToLibrary(completed);
+          else
+            setError(
+              "This job finished, but its game could not be validated. Your earlier adventures remain in the library.",
+            );
+        } else setReadyGame(null);
         if (!terminal(next)) timer = setTimeout(poll, 1800);
       } catch (e) {
         if (!stopped)
@@ -142,6 +179,7 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
   function rememberJob(next: EpisodeJobView) {
     setJob(next);
     setJobId(next.id);
+    setReadyGame(next.status === "ready" ? gameFromJob(next) : null);
     try {
       localStorage.setItem(JOB_KEY, next.id);
     } catch {}
@@ -154,6 +192,7 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
     const body = new FormData();
     body.set("topic", topic);
     body.set("level", level);
+    body.set("format", format);
     if (sourceMode === "text") body.set("sourceText", sourceText);
     if (sourceMode === "url") body.set("sourceUrl", sourceUrl);
     if (sourceMode === "file" && file) body.set("file", file);
@@ -197,7 +236,7 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
   }
   const running = !!job && !terminal(job);
   const jobStages =
-    job?.pipeline === "general-v1"
+    job?.pipeline === "general-v1" || job?.pipeline === "harbor-v1"
       ? ([
           "learning",
           "mechanics",
@@ -215,17 +254,20 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
         : !!file;
   if (playing)
     return (
-      <EpisodePlayer
-        key={`${playing.id}:${playing.revision}`}
-        episode={playing}
+      <GamePlayer
+        key={gameRevisionKey(playing)}
+        game={playing}
         onHome={() => setPlaying(null)}
       />
     );
   return (
     <div className="ep-app ep-studio">
       <header className="ep-topbar">
-        <button className="ep-home" onClick={onBack}>
-          <ArrowLeft size={17} />
+        <button
+          className="ep-home"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label="Astraified home"
+        >
           <span>astraified.</span>
         </button>
         <button
@@ -252,8 +294,8 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
               somewhere to go.
             </h1>
             <p>
-              Bring a source. Follow it into a mystery of curious characters,
-              useful discoveries, and things worth figuring out.
+              Bring a source. Explore it through curious characters, useful
+              discoveries, and ideas you can put to work.
             </p>
             <a
               href="#ep-create"
@@ -281,19 +323,23 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
         </section>
         <section className="ep-library" aria-label="Your adventures">
           <div className="ep-section-title">
-            <h2>Cases worth opening</h2>
-            <span>Point & click adventures</span>
+            <h2>Your next adventure</h2>
+            <span>3D exploration & point-and-click mysteries</span>
           </div>
           <div className="ep-case-list">
-            {[...library, TRANSFORMER_REFERENCE].map((episode) => (
-              <article key={episode.id} className="ep-case">
+            {[...library, ...AUTHORED_GAMES].map((game) => (
+              <article key={gameIdentity(game)} className="ep-case">
                 <button
                   className="ep-case-art"
-                  onClick={() => setPlaying(episode)}
-                  aria-label={`Play ${episode.title}`}
+                  onClick={() => setPlaying(game)}
+                  aria-label={`Play ${game.episode.title}`}
                 >
                   <img
-                    src={`/adventure/${episode.scenes[0].background}.png`}
+                    src={
+                      game.format === "3d"
+                        ? "/harbor-key-art.png"
+                        : `/adventure/${game.episode.scenes[0].background}.png`
+                    }
                     alt=""
                   />
                   <span>
@@ -301,18 +347,26 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                   </span>
                 </button>
                 <div>
-                  <span className="ep-case-kind">
-                    {episode.generated
-                      ? "Generated from your source"
-                      : "Authored Transformer reference"}
+                  <span className="ep-format-badge">
+                    {game.format === "3d" ? (
+                      <Box size={13} />
+                    ) : (
+                      <MousePointer2 size={13} />
+                    )}
+                    {game.format === "3d" ? "3D exploration" : "Point & click"}
                   </span>
-                  <h3>{episode.title}</h3>
-                  <p>{episode.subtitle}</p>
+                  <span className="ep-case-kind">
+                    {isGeneratedGame(game)
+                      ? "Generated from your source"
+                      : "Authored adventure"}
+                  </span>
+                  <h3>{game.episode.title}</h3>
+                  <p>{game.episode.subtitle}</p>
                   <button
                     className="ep-text-button"
-                    onClick={() => setPlaying(episode)}
+                    onClick={() => setPlaying(game)}
                   >
-                    Open the case <ArrowRight size={16} />
+                    Play adventure <ArrowRight size={16} />
                   </button>
                 </div>
               </article>
@@ -327,14 +381,59 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
             onSubmit={generate}
           >
             <span className="ep-eyebrow">
-              <Sparkles size={16} /> A new case
+              <Sparkles size={16} /> A new adventure
             </span>
             <h2>What shall we discover?</h2>
             <p>
               Bring a chapter, article, or set of notes on a topic you want to
-              understand. Your source becomes experiments, evidence, and a
-              mystery you solve by learning how things work.
+              understand. Choose how you want to play, then give your adventure
+              something worth discovering.
             </p>
+            <fieldset className="ep-format-picker">
+              <legend>How would you like to play?</legend>
+              {(
+                [
+                  [
+                    "3d",
+                    "3D exploration",
+                    "Walk around an island, meet its residents, and handle objects.",
+                    Box,
+                  ],
+                  [
+                    "point-and-click",
+                    "Point & click",
+                    "Explore illustrated rooms, gather clues, and solve a mystery.",
+                    MousePointer2,
+                  ],
+                ] as const
+              ).map(([value, label, description, Icon]) => (
+                <label
+                  key={value}
+                  className={format === value ? "ep-format-selected" : ""}
+                >
+                  <input
+                    type="radio"
+                    name="game-format"
+                    value={value}
+                    checked={format === value}
+                    onChange={() => setFormat(value)}
+                  />
+                  <Icon size={21} />
+                  <span>
+                    <strong>{label}</strong>
+                    <small>{description}</small>
+                  </span>
+                </label>
+              ))}
+            </fieldset>
+            {format === "3d" && (
+              <p className="ep-small ep-format-note">
+                A focused idea becomes two connected challenges with a working
+                apparatus or evidence to sort. Your source shapes the lesson;
+                the island, characters, and movement come from the shared harbor
+                world.
+              </p>
+            )}
             <div
               className="ep-source-tabs"
               role="tablist"
@@ -472,11 +571,13 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
               Creating sends extracted text to OpenAI using your configured API
               credits. A focused episode uses up to 24,000 source characters.
               Generation can take several minutes; refreshing this page does not
-              cancel an accepted job.
-              Completed stages are kept on this computer so interrupted work can
-              resume. Adventures share the Bramble Bay art set, with activities
-              designed from your source. A focused chapter works best; a whole
-              course needs several adventures.
+              cancel an accepted job. Completed stages are kept on this computer
+              so interrupted work can resume.{" "}
+              {format === "3d"
+                ? "3D adventures share a harbor world"
+                : "Point-and-click adventures share the Bramble Bay art set"}
+              , with activities designed from your source. A focused chapter
+              works best; a whole course needs several adventures.
             </p>
             <button
               className="ep-primary ep-generate"
@@ -494,26 +595,33 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                   ? "An adventure is taking shape"
                   : "Create my adventure"}
             </button>
-            {library.length >= 6 && (
+            {library.length >= MAX_SAVED_GAMES && (
               <p className="ep-small">
                 This browser keeps your six most recent generated adventures.
-                Creating another will replace the oldest case in this library.
+                Creating another will replace the oldest generated game in this
+                library.
               </p>
             )}
           </form>
           <aside className="ep-generation-side">
             {job ? (
               <section className="ep-job" aria-live="polite">
-                <span className="ep-eyebrow">Your next adventure</span>
+                <span className="ep-eyebrow">
+                  Your next{" "}
+                  {job.format === "3d" || job.pipeline === "harbor-v1"
+                    ? "3D "
+                    : ""}
+                  adventure
+                </span>
                 <h2>
                   {job.status === "ready"
-                    ? "A new mystery awaits."
+                    ? "Your adventure awaits."
                     : job.status === "cancelled"
                       ? "Paused where you left it."
                       : job.status === "interrupted"
                         ? "Your work is still here."
                         : job.status === "failed"
-                          ? "This case needs another look."
+                          ? "This adventure needs another look."
                           : stageLabel[job.stage]}
                 </h2>
                 <ol className="ep-job-stages">
@@ -551,7 +659,7 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                 />
                 {job.learningPlan && (
                   <div className="ep-learning-preview">
-                    <h3>The ideas in your case</h3>
+                    <h3>The ideas in your adventure</h3>
                     <ul>
                       {job.learningPlan.objectives.map((o) => (
                         <li key={"id" in o ? o.id : o.family}>{o.title}</li>
@@ -564,16 +672,18 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                     {warning}
                   </p>
                 ))}
-                {job.episode?.generation?.review && (
-                  <details className="ep-usage">
-                    <summary>Lesson review</summary>
-                    <p>{job.episode.generation.review.summary}</p>
-                    <p>
-                      AI review checks the lesson against the source. It does
-                      not replace an instructor’s review or establish mastery.
-                    </p>
-                  </details>
-                )}
+                {readyGame &&
+                  "generation" in readyGame.episode &&
+                  readyGame.episode.generation?.review && (
+                    <details className="ep-usage">
+                      <summary>Lesson review</summary>
+                      <p>{readyGame.episode.generation.review.summary}</p>
+                      <p>
+                        AI review checks the lesson against the source. It does
+                        not replace an instructor’s review or establish mastery.
+                      </p>
+                    </details>
+                  )}
                 {job.error && (
                   <p className="ep-error" role="alert">
                     {job.error.message}
@@ -598,10 +708,10 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                       Resume from saved work
                     </button>
                   )}
-                  {job.status === "ready" && job.episode && (
+                  {job.status === "ready" && readyGame && (
                     <button
                       className="ep-primary"
-                      onClick={() => setPlaying(job.episode!)}
+                      onClick={() => setPlaying(readyGame)}
                     >
                       Play your adventure <ArrowRight size={16} />
                     </button>
@@ -629,8 +739,8 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                   what changes.
                 </p>
                 <p>
-                  Play the reference case first to see where we’re headed, or
-                  bring a source and make a mystery of your own.
+                  Try an authored adventure from the library, or bring a source
+                  and make something of your own.
                 </p>
               </section>
             )}
@@ -658,7 +768,7 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
       <footer className="ep-studio-footer">
         Made for curiosity. Grounded in your sources.
         <button className="ep-text-button" onClick={onBack}>
-          Return to Bramble Bay
+          Play the original Bramble Bay demo
         </button>
       </footer>
     </div>

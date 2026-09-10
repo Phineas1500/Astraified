@@ -1,15 +1,15 @@
 # Astraified
 
-Astraified is a source-to-game education project: bring explanatory material, then explore its ideas through a point-and-click mystery with characters, inventory puzzles, and working instruments.
+Astraified turns explanatory sources into learning games. The main **adventure studio** lets you choose **3D exploration** or **Point & click**, create from the same source form, and play both formats inside the same page. Generated games share one library, while each game keeps its own progress.
 
-The **adventure studio** now generates a focused lesson from your source without a subject whitelist. It chooses two or three learning goals, designs numerical experiments or evidence-arrangement activities for those goals, and builds a mystery around them. The activities are generated as data for a bounded runtime, so supported scope depends on what those interaction forms can faithfully teach.
+- **3D exploration:** walk and jump around a harbor as Piper, talk with Moss and Bea, carry objects, and apply one source-grounded idea in two connected cases. The generator creates either an experiment with physical controls and computed gauges or source-linked cards you carry into meaningful categories. It uses the existing island and characters.
+- **Point & click:** investigate illustrated rooms, talk with characters, collect and combine items, and solve two or three generated learning activities. The generator creates the lesson and mystery using the existing room artwork.
 
-Two authored cases remain available without an API key:
+Neither mode uses a subject whitelist. Supported scope depends on what the source and available interaction forms can faithfully teach; neither promises arbitrary new mechanics or complete subject coverage.
 
-- **The Last Light at Bramble Bay:** six illustrated rooms, two investigation branches, working circuit repairs, a stranded ferry, and an optional interactive keepsake.
-- **The Case of the Mixed-Up Messages:** the original Transformer reference, with dedicated token-position, attention, and causal-masking instruments. It remains a reference and a compatible episode format; new generations are not restricted to its three concepts.
+Four authored games work without an API key: **Windpost** (balance and torque), **Minute Mail** (average and instantaneous velocity), **The Case of the Mixed-Up Messages** (Transformers), and the original **The Last Light at Bramble Bay** circuit mystery, available from the studio footer. Creating a new game requires server-side OpenAI API access.
 
-Creating an episode requires server-side OpenAI API access. Generated adventures currently share the Bramble Bay room artwork and character assets. There is no promise of complete subject coverage, automatic factual perfection, or proven learning outcomes. The broader direction is documented in [SOURCE_TO_ADVENTURE.md](SOURCE_TO_ADVENTURE.md) and [POINT_AND_CLICK_DIRECTION.md](POINT_AND_CLICK_DIRECTION.md).
+See [docs/UNIFIED_GAMES.md](docs/UNIFIED_GAMES.md) for the shared interface and current 3D limits. The broader direction remains in [SOURCE_TO_ADVENTURE.md](SOURCE_TO_ADVENTURE.md) and [POINT_AND_CLICK_DIRECTION.md](POINT_AND_CLICK_DIRECTION.md).
 
 ## Run locally
 
@@ -38,11 +38,15 @@ npm run dev
 
 The Vite development server proxies `/api` to port 8787. If you change the API port, update `vite.config.ts` too. The key belongs only on the server; do not give it a `VITE_` prefix or add it to frontend code. `.env` and `.astraified/` are ignored by Git.
 
-Generation uses the model ID `gpt-6-astra`, shared from `server/generation.ts`, through the Responses API with structured outputs. The default pipeline uses medium reasoning for learning plans, activity design, and content review, and low reasoning for story generation. Stage settings are defined in `GENERAL_GENERATION_SETTINGS` in `server/general-generation.ts`. Your API project must have access and credits. A health result of `configured: true` means a key is present; it does not establish that the key is valid or the model is accessible. See the [official model reference](https://developers.openai.com/api/docs/models/gpt-6-astra) and [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
+Generation uses the model ID `gpt-6-astra`, shared from `server/generation.ts`, through the Responses API with structured outputs. Point-and-click uses medium reasoning for learning plans, activity design, and content review, and low reasoning for story generation. The smaller 3D learning plan uses low reasoning; its activity design and review retain medium reasoning. Stage settings are defined in `GENERAL_GENERATION_SETTINGS` in `server/general-generation.ts`, with 3D overrides in `server/harbor-generation.ts`. Your API project must have access and credits. A health result of `configured: true` means a key is present; it does not establish that the key is valid or the model is accessible. See the [official model reference](https://developers.openai.com/api/docs/models/gpt-6-astra) and [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
 ## Play an adventure
 
-On the cover, choose **Begin the case** to play _The Last Light at Bramble Bay_, or **Create an adventure** to enter the studio. Open a completed generated case or the authored Transformer reference from **Cases worth opening**.
+The main page opens the studio. Choose any game in **Your next adventure**; both formats open in place. Use **Return to library** in the 3D pause menu or the Astraified button in point-and-click to return. The original Bramble Bay demo remains in the footer.
+
+In 3D, use WASD or arrow keys to walk, Space to jump, E to talk or handle an object, and drag or Q/R to turn the camera. B opens field notes; Escape opens controls and the library return. Touch controls are available in the controls menu. Games save separately.
+
+The following controls and activity sizes describe point-and-click:
 
 Click a character to talk or an object to investigate. Select an item in your bag, then click a room object to use it; select a second inventory item to combine them. **Inspect** reads the selected object. The map shows places to explore, the notebook records discoveries and sources, and **A little nudge** provides a hint based on the current case state. Hold **H**, or choose **Look around**, to reveal interactive objects. Keyboard users can Tab through objects and press Enter to interact. Escape closes a dialogue or instrument, or puts away a selected item. There is no timer.
 
@@ -57,7 +61,7 @@ Each activity contains two to four tasks or rounds, ending with a changed transf
 
 ## Generate an adventure from your source
 
-From the cover, choose **Create an adventure**, then supply one source, optionally describe a focus, select a learner level, and choose **Create my adventure**. The studio includes example links for derivatives, the US Constitution, and Transformers, plus Transformer starter notes. These are starting points, not a list of permitted subjects.
+In the studio, choose **3D exploration** or **Point & click**, supply one source, optionally describe a focus, select a learner level, and choose **Create my adventure**. The studio includes example links for derivatives, the US Constitution, and Transformers, plus Transformer starter notes. These are starting points, not a list of permitted subjects.
 
 | Input       | Current support                                                  |
 | ----------- | ---------------------------------------------------------------- |
@@ -67,9 +71,11 @@ From the cover, choose **Create an adventure**, then supply one source, optional
 
 PDFs are limited to 60 pages. Generation uses at most **24,000 extracted characters**, retaining excerpts and page references where available. Ingestion is text-only: scanned pages require OCR before upload, and embedded diagrams are not interpreted. HTML extraction preserves common MathML fractions, powers, roots and limit notation; it prefers original TeX annotations when present. A topic guides the focus, but **topic-only research is not implemented**. Multiple-source collections and additional document formats are future work.
 
-The default `general-v1` pipeline has no fixed subject list. It selects **two focused learning goals by default, or three when needed**, grounded in quotations from the supplied text. A chapter on an unfamiliar subject can be considered without adding a hand-authored topic adapter. Material can still be rejected when it is insufficient, incoherent, contradictory, or cannot support two honest activities using the current primitives. A whole course needs several focused adventures.
+For point-and-click, the `general-v1` pipeline has no fixed subject list. It selects **two focused learning goals by default, or three when needed**, grounded in quotations from the supplied text. A chapter on an unfamiliar subject can be considered without adding a hand-authored topic adapter. Material can still be rejected when it is insufficient, incoherent, contradictory, or cannot support two honest activities using the current primitives. A whole course needs several focused adventures.
 
-Generation proceeds through these stages:
+The 3D `harbor-v1` pipeline instead selects one focused objective and builds two physical cases using the same bounded simulation/evidence interpreter. It uses a compact 3D story compiler and the same checkpoint, repair, source-grounding and separate content-review process. Its smaller control and card limits are documented in [docs/UNIFIED_GAMES.md](docs/UNIFIED_GAMES.md).
+
+Generation proceeds through these stages (the detailed quest structure below describes point-and-click):
 
 1. **Learning:** identify source-backed goals, assumptions, misconceptions, and meaningful learner actions.
 2. **Mechanics:** generate the actual simulation equations, controls, examples, goal conditions, or evidence cards and accepted arrangements. These are source-specific configurations, not a fixed set of topic fixtures.
@@ -79,7 +85,7 @@ Generation proceeds through these stages:
 
 This review is performed by the same configured model in a separate call; it is not independent human certification. Its summary is included with a completed generated episode. Exact quotations, deterministic checks, and model review address different failure modes, and none guarantees universal quality or learning effectiveness.
 
-The output is an **episode package**: source references, two or three learning objectives, scenes, inventory items, discoveries, declarative rules, generated activity configurations, hints, a completion condition, and a reference playthrough. The player interprets this data through shared code. Generated expressions use a limited arithmetic/logic language rather than executable JavaScript.
+The API returns a versioned **game package** with its format and episode. Point-and-click episodes preserve their existing contract: source references, two or three learning objectives, scenes, inventory items, discoveries, declarative rules, generated activity configurations, hints, a completion condition, and a reference playthrough. The player interprets this data through shared code. Generated expressions use a limited arithmetic/logic language rather than executable JavaScript.
 
 Current bounds matter: simulations support up to six controls, eight outputs, and one plot; expressions support bounded arithmetic, comparisons, conditionals, common mathematical functions, and supported first derivatives. Evidence activities arrange three to ten cards into two to eight slots, with explicit accepted alternatives. These primitives can represent many quantitative and interpretive lessons, but not arbitrary laboratory equipment, every mathematical structure, or open-ended essay assessment. The model should explain illustrative assumptions and avoid presenting contested interpretations as uniquely correct answers.
 
@@ -91,11 +97,11 @@ New adventure jobs use private local checkpoints under **`.astraified/jobs/`**. 
 
 After the server accepts a job, closing or refreshing the browser does not cancel it. The studio remembers the current job ID and reconnects to its progress. **Stop generation** aborts the active stage while preserving completed checkpoints. **Resume from saved work** continues from the latest completed stage after a cancellation, recoverable failure, or server restart. It restarts an unfinished model call; it does not resume token generation inside that call. The resumable learning, mechanics, story, and review stages each permit at most three attempts. There is **one total model repair allowance per job**, shared across invalid mechanics, story/playability failures, and blocking content-review findings. Using it to repair mechanics leaves no second repair for a later story or review failure. Unsupported source material and unresolved content or validation failures require a new job.
 
-The browser separately stores generated episode packages, including source excerpts, in its adventure library. It retains up to **six episodes**, with a **3,000,000-character serialized JSON guard** (roughly 3 MB for ASCII text). Case progress and unfinished instrument experiments also live in `localStorage`, keyed to the episode edition. A save failure is reported in the UI; keep the page open if a newly generated case could not be saved. Clearing this site's browser data removes the library, progress, and remembered job ID; it does not remove `.astraified/jobs/`. There is no account sync or hosted sharing.
+The browser separately stores generated game packages, including source excerpts, in its adventure library. It retains up to **six episodes**, with a **3,000,000-character serialized JSON guard** (roughly 3 MB for ASCII text). Case progress and unfinished instrument experiments also live in `localStorage`, keyed to the episode edition. A save failure is reported in the UI; keep the page open if a newly generated case could not be saved. Clearing this site's browser data removes the library, progress, and remembered job ID; it does not remove `.astraified/jobs/`. There is no account sync or hosted sharing.
 
 Generating a case **sends the extracted source text to OpenAI**. Requests use `store: false`; provider-side handling remains subject to the API account's applicable data policies. After a case is loaded, ordinary gameplay runs locally without model or grading requests. Opening a source link still uses the network; this is not an installable offline app or service-worker cache.
 
-The adventure job service allows one active job at a time and disables automatic API retries. Defaults for the generalized pipeline are:
+The adventure job service allows one active job at a time across both formats and disables automatic API retries. Defaults for the point-and-click pipeline are:
 
 | Model call                               | Reasoning effort | Maximum output tokens | Timeout     |
 | ---------------------------------------- | ---------------- | --------------------- | ----------- |
@@ -104,6 +110,8 @@ The adventure job service allows one active job at a time and disables automatic
 | Story blueprint                          | Low              | 12,000                | 420 seconds |
 | Content review                           | Medium           | 6,000                 | 180 seconds |
 | Combined mechanics/story repair          | Low              | 36,000                | 420 seconds |
+
+The 3D pipeline uses the same settings except for its focused learning plan (low reasoning, 10,000 output tokens) and combined mechanics/story repair (24,000 output tokens).
 
 The budgets are per call, not a total-job spending cap. A cancelled or timed-out request may already have incurred provider usage. The UI reports usage returned by provider responses, including incomplete responses when accounting is available; that counter is not a complete billing record for interrupted calls.
 

@@ -78,7 +78,7 @@ function initial() {
 
 export default function AdventureApp() {
   const [state, setState] = useState<AdventureState>(initial);
-  const [screen, setScreen] = useState<"cover" | "game" | "legacy" | "studio">("cover");
+  const [screen, setScreen] = useState<"cover" | "game" | "legacy" | "studio">("studio");
   const [selected, setSelected] = useState<ItemId | null>(null);
   const [dialogue, setDialogue] = useState<Dialogue | null>(null);
   const [line, setLine] = useState(0);

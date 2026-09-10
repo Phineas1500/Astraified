@@ -1,5 +1,13 @@
 # Parallel development boundaries
 
+## September 10 integration update
+
+The user authorized a unified main-site creator and both players on one page. `src/games/` now wraps existing point-and-click packages and 3D fixtures in a version-1 `GamePackage`; `src/EpisodeStudio.tsx` owns the shared form and mixed library. POST job `format` chooses `point-and-click` (API default) or `3d`; 3D jobs use `harbor-v1` and `server/harbor-generation.ts`. Existing `job.episode`, old jobs and old point-and-click saves remain compatible. `src/windpost/` owns the spatial kit, renderer, runtime, compiler and separate progress saves. `src/domain/lesson-machines.ts` remains unchanged.
+
+The original development boundaries below describe the workstreams before this authorized integration.
+
+## Original workstream ownership
+
 The point-and-click/source-generation session owns `src/episodes/`, `src/EpisodeStudio.tsx`, `src/domain/transformers.ts`, `src/domain/lesson-machines.ts`, `server/general-generation.ts`, `server/story-blueprint.ts`, `server/math-text.ts`, `server/model-client.ts`, the `server/episode-*` modules, and integration with `src/AdventureApp.tsx` and `server/index.ts`.
 
 The 3D prototype should use a separate worktree and keep work in `src/game/` or a dedicated 3D directory. The existing Bramble Bay player remains available during migration. Avoid overwriting its entry point or modifying the source-creation contract without coordinating.

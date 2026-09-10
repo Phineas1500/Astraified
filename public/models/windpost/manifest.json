@@ -1,0 +1,59 @@
+{
+  "characters": [
+    {
+      "file": "piper.glb",
+      "bytes": 1212924,
+      "height": 1.65,
+      "forward": "+Z",
+      "up": "+Y",
+      "feetY": 0,
+      "animations": [
+        "idle",
+        "walk",
+        "jump",
+        "carry",
+        "carry_walk"
+      ],
+      "skins": 1,
+      "joints": 7,
+      "skinnedPrimitives": 16,
+      "meshCount": 16,
+      "triangles": 32104,
+      "authoring": "Original geometry, materials, skeleton and clips authored by build_windpost_characters.py in Blender 4.5.0"
+    },
+    {
+      "file": "moss.glb",
+      "bytes": 1185216,
+      "height": 1.65,
+      "forward": "+Z",
+      "up": "+Y",
+      "feetY": 0,
+      "animations": [
+        "idle"
+      ],
+      "skins": 1,
+      "joints": 7,
+      "skinnedPrimitives": 14,
+      "meshCount": 14,
+      "triangles": 31384,
+      "authoring": "Original geometry, materials, skeleton and clips authored by build_windpost_characters.py in Blender 4.5.0"
+    },
+    {
+      "file": "bea.glb",
+      "bytes": 955404,
+      "height": 1.65,
+      "forward": "+Z",
+      "up": "+Y",
+      "feetY": 0,
+      "animations": [
+        "idle"
+      ],
+      "skins": 1,
+      "joints": 7,
+      "skinnedPrimitives": 14,
+      "meshCount": 14,
+      "triangles": 25600,
+      "authoring": "Original geometry, materials, skeleton and clips authored by build_windpost_characters.py in Blender 4.5.0"
+    }
+  ]
+}

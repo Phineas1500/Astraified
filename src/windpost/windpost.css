@@ -1,0 +1,1116 @@
+.wp-game {
+  font-family: "Trebuchet MS", Verdana, sans-serif;
+  color: #244e50;
+  background: #bbdcea;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  font-size: 16px;
+}
+.wp-game * {
+  box-sizing: border-box;
+}
+.wp-game button,
+.wp-game input {
+  font: inherit;
+}
+.wp-game button {
+  cursor: pointer;
+}
+.wp-game button:disabled {
+  cursor: wait;
+  opacity: 0.8;
+}
+.wp-game button,
+.wp-game a,
+.wp-game summary {
+  touch-action: manipulation;
+}
+.wp-game button:focus-visible,
+.wp-game a:focus-visible,
+.wp-game summary:focus-visible,
+.wp-game input:focus-visible {
+  outline: 3px solid #276e65;
+  outline-offset: 4px;
+}
+.wp-game button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 43px;
+  padding: 10px 17px;
+  border: 1px solid #276e6530;
+  border-radius: 9px;
+  background: #fff6dd;
+  color: #244e50;
+  transition:
+    background 0.15s,
+    transform 0.15s;
+}
+.wp-game button:hover {
+  background: #fffdf4;
+}
+.wp-game button:active {
+  transform: translateY(1px);
+}
+.wp-game .wp-primary {
+  background: #276e65;
+  border-color: #276e65;
+  color: #fff6dd;
+  font-weight: 700;
+}
+.wp-game .wp-primary:hover {
+  background: #195e56;
+}
+.wp-game {
+  position: relative;
+  width: 100%;
+  height: var(--wp-player-height, 100dvh);
+  min-height: 380px;
+  overflow: hidden;
+}
+.wp-game canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+  touch-action: none;
+}
+.wp-game canvas:focus-visible {
+  outline: 3px solid #f5c64d;
+  outline-offset: -3px;
+}
+.wp-game .wp-opening {
+  position: absolute;
+  left: 6%;
+  bottom: 12%;
+  max-width: 440px;
+  padding: 0;
+  filter: drop-shadow(0 2px 12px #fff7de70);
+}
+.wp-game .wp-brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 17px;
+}
+.wp-game .wp-opening h1 {
+  font-family: Georgia, serif;
+  letter-spacing: -4px;
+  font-weight: 400;
+  font-size: clamp(62px, 7vw, 105px);
+  line-height: 1;
+  margin: 0 0 17px;
+}
+.wp-game .wp-opening p {
+  font-size: 22px;
+  line-height: 1.4;
+  margin: 0 0 27px;
+}
+.wp-game .wp-start {
+  min-width: 205px;
+  min-height: 52px;
+  font-size: 17px;
+  box-shadow: 0 5px 0 #163f3b25;
+}
+.wp-game .wp-opening-help {
+  display: block;
+  font-size: 13px;
+  margin-top: 18px;
+  max-width: 260px;
+  line-height: 1.5;
+}
+.wp-game .wp-quest {
+  position: absolute;
+  left: 28px;
+  top: 25px;
+  display: flex;
+  gap: 13px;
+  max-width: 420px;
+  padding: 15px 19px 15px 15px;
+  background: #fff4dce8;
+  border-radius: 4px 16px 16px 16px;
+  box-shadow: 0 4px 14px #245b5e18;
+  pointer-events: none;
+}
+.wp-game .wp-quest-icon {
+  display: flex;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #f5c64d;
+  align-items: center;
+  justify-content: center;
+}
+.wp-game .wp-quest h1 {
+  font-size: 16px;
+  margin: 0 0 5px;
+  line-height: 1.2;
+}
+.wp-game .wp-quest p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 310px;
+  color: #476563;
+}
+.wp-game .wp-tools {
+  position: absolute;
+  right: 25px;
+  top: 25px;
+  display: flex;
+  gap: 7px;
+}
+.wp-game .wp-tools button {
+  border: 0;
+  min-width: 43px;
+  background: #fff4dcea;
+  padding: 10px 12px;
+  box-shadow: 0 3px 10px #245b5e15;
+}
+.wp-game .wp-tools span {
+  font-size: 13px;
+  font-weight: bold;
+}
+.wp-game .wp-interact {
+  position: absolute;
+  bottom: 21%;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 90%;
+  min-height: 51px;
+  background: #fff7e7;
+  border: 2px solid #fff;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px #164a4933;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.wp-game .wp-interact:active {
+  transform: translateX(-50%) translateY(1px);
+}
+.wp-game kbd {
+  font-family: inherit;
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+.wp-game .wp-interact kbd {
+  background: #276e65;
+  color: #fff5da;
+  border-radius: 5px;
+  display: grid;
+  place-content: center;
+  min-width: 29px;
+  height: 29px;
+  font-weight: 700;
+  font-size: 15px;
+}
+.wp-game .wp-notice {
+  position: absolute;
+  bottom: 12%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(650px, 90%);
+  background: #244e50ef;
+  color: #fff4dc;
+  border-radius: 10px;
+  padding: 13px 20px;
+  box-shadow: 0 5px 15px #164a4920;
+  font-size: 14px;
+  text-align: center;
+  line-height: 1.5;
+  pointer-events: none;
+}
+.wp-game .wp-controls {
+  position: absolute;
+  left: 25px;
+  bottom: 23px;
+  display: flex;
+  gap: 18px;
+  color: #244e50;
+  font-size: 11px;
+  background: #fff7dece;
+  border-radius: 8px;
+  padding: 10px 13px;
+  pointer-events: none;
+}
+.wp-game .wp-controls kbd {
+  font-size: 11px;
+  font-weight: bold;
+}
+.wp-game .wp-pocket {
+  position: absolute;
+  right: 25px;
+  bottom: 22px;
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+.wp-game .wp-pocket > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff7dee6;
+  padding: 9px 12px;
+  border-radius: 8px;
+}
+.wp-game .wp-pocket .wp-carried {
+  font-size: 13px;
+  font-weight: 700;
+  background: #f5c64df2;
+}
+.wp-game .wp-carried button {
+  font-size: 10px;
+  min-height: 28px;
+  padding: 4px 7px;
+  margin-left: 7px;
+  background: #fff4ce80;
+}
+.wp-game .wp-carried kbd {
+  font-size: 10px;
+}
+.wp-game .wp-save-warning {
+  position: absolute;
+  top: 130px;
+  left: 28px;
+  max-width: 320px;
+  font-size: 12px;
+  background: #f5c64d;
+  padding: 10px;
+}
+.wp-game .wp-dialog {
+  position: fixed;
+  inset: auto 0 6vh;
+  width: min(610px, calc(100% - 32px));
+  max-height: 85dvh;
+  margin: auto;
+  padding: 32px;
+  border: 0;
+  border-radius: 17px;
+  background: #fff4dc;
+  color: #244e50;
+  box-shadow: 0 20px 80px #153f4f45;
+  font-family: inherit;
+  overflow: auto;
+}
+.wp-game .wp-dialog::backdrop {
+  background: #1c495938;
+  backdrop-filter: blur(2px);
+}
+.wp-game .wp-dialog h2 {
+  font-family: Georgia, serif;
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 1.15;
+  margin: 0 0 15px;
+  letter-spacing: -0.5px;
+  max-width: 90%;
+}
+.wp-game .wp-dialog h3 {
+  font-size: 16px;
+  margin: 25px 0 10px;
+}
+.wp-game .wp-dialog p {
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 12px 0 18px;
+}
+.wp-game .wp-dialog .wp-dialogue-line {
+  font-size: 20px;
+  line-height: 1.5;
+  margin: 20px 0 25px;
+}
+.wp-game .wp-dialog .wp-muted {
+  font-size: 12px;
+  color: #687b6e;
+}
+.wp-game .wp-dialog-close {
+  position: sticky;
+  top: -12px;
+  height: 0;
+  z-index: 3;
+}
+.wp-game .wp-close {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  border: 1px solid #276e6526;
+  background: #fff4dc;
+  min-width: 35px;
+  min-height: 35px;
+  padding: 5px;
+}
+.wp-game .wp-speaker {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.wp-game .wp-speaker > span {
+  display: grid;
+  place-content: center;
+  width: 55px;
+  height: 55px;
+  border-radius: 45% 50% 40% 50%;
+  background: #b97558;
+  color: #fff4dc;
+  font-size: 28px;
+  font-family: Georgia, serif;
+}
+.wp-game .wp-speaker.bea > span {
+  background: #8d7baf;
+}
+.wp-game .wp-speaker small {
+  font-size: 12px;
+  display: block;
+  margin-bottom: 3px;
+}
+.wp-game .wp-speaker h2 {
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 23px;
+  margin: 0;
+}
+.wp-game .wp-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 20px;
+}
+.wp-game .wp-choices button {
+  font-size: 13px;
+}
+.wp-game .wp-book-title {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.wp-game .wp-book-title h2 {
+  margin: 0;
+}
+.wp-game .wp-note-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 19px;
+  color: #687b6e;
+  font-size: 12px;
+}
+.wp-game .wp-found-notes,
+.wp-game .wp-experiments {
+  display: grid;
+  gap: 13px;
+}
+.wp-game .wp-found-note {
+  border-left: 3px solid #dca642;
+  padding: 4px 0 5px 15px;
+}
+.wp-game .wp-dialog h4 {
+  margin: 0;
+  font-size: 15px;
+}
+.wp-game .wp-found-note p {
+  font-size: 13px;
+  margin: 8px 0;
+}
+.wp-game .wp-source-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.wp-game .wp-favor-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 17px;
+  background: #efdeb660;
+  border: 1px dashed #b48d4f80;
+  border-radius: 9px;
+  font-size: 13px;
+}
+.wp-game .wp-favor-note > svg {
+  flex-shrink: 0;
+}
+.wp-game .wp-favor-note.done {
+  border-color: #276e6580;
+  background: #276e650a;
+}
+.wp-game .wp-favor-note p {
+  font-size: 13px;
+  margin: 7px 0;
+}
+.wp-game .wp-favor-note small {
+  font-size: 11px;
+  color: #687b6e;
+}
+.wp-game .wp-experiment {
+  border: 1px solid #276e6526;
+  border-radius: 10px;
+  background: #fff9ea;
+  padding: 17px;
+}
+.wp-game .wp-experiment-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.wp-game .wp-experiment-heading > span {
+  font-size: 10px;
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: #e8eddb;
+}
+.wp-game .wp-dialog .wp-experiment .wp-muted {
+  margin: 8px 0 14px;
+}
+.wp-game .wp-comparison {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+.wp-game .wp-comparison th,
+.wp-game .wp-comparison td {
+  text-align: right;
+  padding: 9px 0 9px 10px;
+  border-bottom: 1px solid #276e651c;
+  font-variant-numeric: tabular-nums;
+}
+.wp-game .wp-comparison th:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+.wp-game .wp-comparison thead th {
+  font-size: 10px;
+  color: #687b6e;
+}
+.wp-game .wp-comparison small {
+  font-size: 10px;
+  color: #687b6e;
+  font-weight: normal;
+}
+.wp-game .wp-dialog .wp-result {
+  font-size: 12px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+.wp-game .wp-dialog .wp-learning-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.wp-game .wp-learning-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.wp-game .wp-trials small {
+  display: block;
+  font-size: 10px;
+  font-weight: normal;
+  color: #687b6e;
+}
+.wp-game .wp-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.wp-game .wp-observations {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  font-size: 13px;
+}
+.wp-game .wp-observations span {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #788274;
+}
+.wp-game .wp-observations .done {
+  color: #276e65;
+}
+.wp-game .wp-sketch {
+  border-block: 1px solid #276e6520;
+  padding: 17px 25px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 11px;
+  text-align: center;
+}
+.wp-game .wp-beam {
+  position: relative;
+  width: 160px;
+  height: 50px;
+  flex-shrink: 0;
+}
+.wp-game .wp-beam:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 22px;
+  height: 6px;
+  background: #ac7654;
+}
+.wp-game .wp-beam b {
+  position: absolute;
+  top: 25px;
+  left: 55px;
+  color: #276e65;
+  font-size: 23px;
+}
+.wp-game .wp-beam i {
+  position: absolute;
+  left: 6px;
+  top: 3px;
+  width: 21px;
+  height: 21px;
+  background: #b96177;
+}
+.wp-game .wp-beam i:last-child {
+  left: auto;
+  right: 0;
+  top: 8px;
+  background: #d99d44;
+  height: 16px;
+}
+.wp-game .wp-trials {
+  list-style: none;
+  padding: 0;
+}
+.wp-game .wp-trials li {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 9px 0;
+  border-bottom: 1px solid #276e651c;
+  font-size: 12px;
+}
+.wp-game .wp-dialog details {
+  font-size: 12px;
+  margin: 22px 0;
+  line-height: 1.6;
+}
+.wp-game .wp-dialog details summary {
+  cursor: pointer;
+  font-weight: bold;
+  padding: 4px 0;
+}
+.wp-game .wp-dialog details p,
+.wp-game .wp-dialog details li {
+  font-size: 12px;
+}
+.wp-game .wp-dialog details li {
+  margin-bottom: 8px;
+}
+.wp-game .wp-dialog a {
+  color: #276e65;
+  text-underline-offset: 3px;
+}
+.wp-game .wp-control-list {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 11px;
+  font-size: 13px;
+  margin: 25px 0;
+}
+.wp-game .wp-control-list dt {
+  font-weight: bold;
+}
+.wp-game .wp-control-list dd {
+  margin: 0;
+}
+.wp-game .wp-setting {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 14px 0;
+  font-size: 13px;
+}
+.wp-game .wp-setting input {
+  accent-color: #276e65;
+  width: 17px;
+  height: 17px;
+}
+.wp-game .wp-finish-stamp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: #f5c64d;
+  border: 2px dashed #276e65;
+  width: 88px;
+  height: 75px;
+  transform: rotate(-8deg);
+  border-radius: 14px;
+  margin: 0 0 25px;
+}
+.wp-game .wp-delivery-receipt {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-block: 1px dashed #276e6560;
+  padding: 17px 0;
+  margin: 20px 0;
+  font-size: 14px;
+}
+.wp-game .wp-touch {
+  position: absolute;
+  bottom: 85px;
+  left: 25px;
+  right: 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  pointer-events: none;
+}
+.wp-game .wp-touch button {
+  pointer-events: auto;
+  touch-action: none;
+  background: #fff4dcdd;
+}
+.wp-game .wp-dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 45px);
+  grid-template-rows: 45px 45px;
+  gap: 3px;
+}
+.wp-game .wp-dpad button {
+  padding: 8px;
+}
+.wp-game .wp-dpad button:first-child {
+  grid-column: 2;
+}
+.wp-game .wp-dpad button:nth-child(2) {
+  grid-column: 1;
+}
+.wp-game .wp-load-error {
+  max-width: 360px;
+  background: #fff4dc;
+  padding: 16px;
+  border-radius: 12px;
+}
+.wp-game .wp-load-error p {
+  font-size: 13px;
+  word-break: break-word;
+}
+@media (max-width: 850px) {
+  .wp-game .wp-quest {
+    left: 16px;
+    top: 16px;
+    max-width: calc(100% - 178px);
+    padding: 12px;
+    gap: 9px;
+  }
+  .wp-game .wp-quest-icon {
+    width: 30px;
+    height: 30px;
+  }
+  .wp-game .wp-quest h1 {
+    font-size: 14px;
+  }
+  .wp-game .wp-quest p {
+    font-size: 11px;
+  }
+  .wp-game .wp-tools {
+    right: 16px;
+    top: 16px;
+    gap: 5px;
+  }
+  .wp-game .wp-tools span {
+    display: none;
+  }
+  .wp-game .wp-tools button {
+    padding: 9px;
+    min-width: 39px;
+  }
+  .wp-game .wp-controls {
+    left: 16px;
+    bottom: 16px;
+    gap: 11px;
+    font-size: 10px;
+  }
+  .wp-game .wp-controls span:last-child {
+    display: none;
+  }
+  .wp-game .wp-pocket {
+    right: 16px;
+    bottom: 62px;
+  }
+  .wp-game .wp-opening {
+    left: 7%;
+    bottom: 10%;
+  }
+  .wp-game .wp-opening h1 {
+    font-size: 76px;
+  }
+  .wp-game .wp-dialog {
+    padding: 26px;
+    bottom: 4vh;
+  }
+  .wp-game .wp-dialog .wp-dialogue-line {
+    font-size: 18px;
+  }
+}
+@media (max-width: 540px) {
+  .wp-game .wp-experiment {
+    padding: 12px;
+  }
+  .wp-game .wp-comparison {
+    font-size: 11px;
+  }
+  .wp-game .wp-opening h1 {
+    font-size: 63px;
+  }
+  .wp-game .wp-opening p {
+    font-size: 18px;
+  }
+  .wp-game .wp-quest {
+    max-width: calc(100% - 147px);
+    left: 10px;
+    top: 10px;
+    padding: 10px;
+  }
+  .wp-game .wp-quest-icon {
+    display: none;
+  }
+  .wp-game .wp-tools {
+    right: 10px;
+    top: 10px;
+  }
+  .wp-game .wp-tools button {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 8px;
+  }
+  .wp-game .wp-quest h1 {
+    font-size: 13px;
+  }
+  .wp-game .wp-quest p {
+    font-size: 10px;
+  }
+  .wp-game .wp-controls {
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    justify-content: center;
+    gap: 14px;
+  }
+  .wp-game .wp-pocket {
+    bottom: 52px;
+    right: 10px;
+  }
+  .wp-game .wp-pocket .wp-carried {
+    font-size: 11px;
+  }
+  .wp-game .wp-interact {
+    font-size: 12px;
+    bottom: 26%;
+    min-height: 45px;
+    padding: 8px 12px;
+    white-space: normal;
+    width: max-content;
+  }
+  .wp-game .wp-notice {
+    font-size: 12px;
+    bottom: 17%;
+    padding: 11px 14px;
+  }
+  .wp-game .wp-dialog {
+    padding: 24px 21px;
+    border-radius: 13px;
+    max-height: 90dvh;
+    bottom: 3vh;
+  }
+  .wp-game .wp-dialog h2 {
+    font-size: 28px;
+  }
+  .wp-game .wp-dialog .wp-dialogue-line {
+    font-size: 17px;
+  }
+  .wp-game .wp-choices {
+    flex-direction: column;
+  }
+  .wp-game .wp-choices button {
+    min-height: 45px;
+  }
+  .wp-game .wp-sketch {
+    padding: 15px 0;
+    gap: 9px;
+  }
+  .wp-game .wp-beam {
+    width: 110px;
+  }
+  .wp-game .wp-beam b {
+    left: 35px;
+  }
+  .wp-game .wp-touch {
+    bottom: 110px;
+    left: 13px;
+    right: 13px;
+  }
+}
+.wp-game.wp-touch-enabled .wp-notice {
+  bottom: 25%;
+}
+.wp-game.wp-touch-enabled .wp-interact {
+  bottom: 33%;
+}
+.wp-game.wp-touch-enabled .wp-controls span:nth-child(-n + 2) {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wp-game *,
+  .wp-game *::before,
+  .wp-game *::after {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.wp-game .wp-episode-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 22px;
+}
+.wp-game .wp-episode-choices button {
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: 7px;
+  background: #fff6dded;
+  font-size: 13px;
+  box-shadow: 0 2px 8px #245b5e12;
+}
+.wp-game .wp-episode-choices button[aria-pressed="true"] {
+  background: #244e50;
+  color: #fff6dd;
+  border-color: #244e50;
+}
+.wp-game .wp-episode-number {
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.65;
+}
+.wp-game .wp-opening {
+  max-width: 530px;
+}
+.wp-game .wp-opening h1 {
+  max-width: 530px;
+  text-wrap: balance;
+  font-size: clamp(58px, 7vw, 96px);
+}
+.wp-game .wp-opening p {
+  max-width: 370px;
+  text-wrap: pretty;
+}
+.wp-game .wp-experiment .wp-comparison {
+  font-variant-numeric: tabular-nums;
+}
+.wp-game .wp-readout-description {
+  font-size: 13px;
+  line-height: 1.65;
+}
+@media (max-width: 600px) {
+  .wp-game .wp-opening {
+    bottom: 8%;
+    right: 6%;
+  }
+  .wp-game .wp-opening h1 {
+    font-size: 58px;
+    letter-spacing: -3px;
+    max-width: 330px;
+  }
+  .wp-game .wp-opening p {
+    font-size: 18px;
+    margin-bottom: 20px;
+  }
+  .wp-game .wp-opening .wp-episode-choices {
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+  .wp-game .wp-episode-choices button {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .wp-game .wp-comparison {
+    font-size: 12px;
+  }
+}
+
+.wp-game .wp-instrument {
+  position: absolute;
+  top: 137px;
+  left: 28px;
+  width: 262px;
+  padding: 13px 15px;
+  background: #fff4dcef;
+  border-left: 3px solid #dba945;
+  border-radius: 3px 10px 10px 3px;
+  box-shadow: 0 4px 14px #245b5e18;
+  pointer-events: none;
+  font-size: 12px;
+}
+.wp-game .wp-instrument > strong,
+.wp-game .wp-instrument > span {
+  display: block;
+}
+.wp-game .wp-instrument > span {
+  color: #687b6e;
+  font-size: 11px;
+  margin-top: 4px;
+}
+.wp-game .wp-instrument dl {
+  margin: 11px 0 0;
+  display: grid;
+  gap: 7px;
+}
+.wp-game .wp-instrument dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.wp-game .wp-instrument dd {
+  margin: 0;
+  font-weight: bold;
+  font-variant-numeric: tabular-nums;
+}
+.wp-game .wp-instrument small {
+  font-weight: normal;
+}
+@media (max-width: 600px) {
+  .wp-game .wp-instrument {
+    top: 118px;
+    left: 10px;
+    width: 223px;
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+}
+
+.wp-standalone {
+  position: fixed;
+  inset: 0;
+}
+.wp-game {
+  isolation: isolate;
+  line-height: 1.4;
+  font-weight: 400;
+}
+.wp-game h1,
+.wp-game h2,
+.wp-game h3 {
+  color: inherit;
+}
+.wp-game button {
+  line-height: 1.3;
+  letter-spacing: normal;
+}
+.wp-game .wp-home {
+  display: flex;
+  width: max-content;
+  margin-bottom: 18px;
+  font-size: 12px;
+  background: #fff6dddf;
+}
+.wp-game .wp-source-links a {
+  text-decoration: underline;
+}
+
+.wp-game .wp-card-destinations {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0;
+}
+.wp-game .wp-card-destinations > div {
+  border-left: 3px solid #dba945;
+  padding-left: 12px;
+}
+.wp-game .wp-card-destinations p {
+  font-size: 13px;
+  margin: 4px 0;
+}
+.wp-game .wp-carried-card {
+  max-width: 240px;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  font-size: 12px;
+  background: transparent;
+}
+
+.wp-game .wp-interact {
+  white-space: normal;
+  width: max-content;
+  max-width: min(650px, 90%);
+  overflow-wrap: anywhere;
+}
+.wp-game .wp-carried-card {
+  overflow-wrap: anywhere;
+}
+
+/* Flow the station measurements below the actual objective height. Long source
+   instructions remain readable instead of overlapping fixed-position panels. */
+.wp-game .wp-headsup {
+  position: absolute;
+  left: 28px;
+  top: 25px;
+  width: min(420px, calc(100% - 220px));
+  max-height: calc(100% - 230px);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+}
+.wp-game .wp-headsup .wp-quest {
+  position: static;
+  width: 100%;
+  max-width: none;
+  flex: 0 0 auto;
+}
+.wp-game .wp-headsup .wp-instrument {
+  position: static;
+  max-width: 100%;
+  flex: 0 0 auto;
+}
+.wp-game .wp-headsup:focus-visible {
+  outline: 3px solid #276e65;
+  outline-offset: 3px;
+}
+@media (max-width: 850px) {
+  .wp-game .wp-headsup {
+    left: 16px;
+    top: 16px;
+    width: min(420px, calc(100% - 194px));
+  }
+}
+@media (max-width: 540px) {
+  .wp-game .wp-headsup {
+    left: 10px;
+    top: 10px;
+    width: calc(100% - 147px);
+    max-height: calc(100% - 245px);
+    gap: 8px;
+  }
+}

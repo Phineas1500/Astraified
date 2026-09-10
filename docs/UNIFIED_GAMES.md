@@ -1,0 +1,55 @@
+# One studio, two game formats
+
+The main site at `/` contains the source form, format selector, generated library and both players. `windpost.html` remains an optional development entry; users do not need it. The 3D design follows the third-person exploration direction: a visible character, places to explore, residents to meet and objects with meaningful effects.
+
+## Shared interface
+
+`src/games/types.ts` defines `GamePackage = {version:1, format, episode}` with a discriminated `point-and-click` or `3d` episode. Each format retains its existing schema and independent save key. Validation dispatches to the complete format-specific validator; it does not coerce unknown content into a demo.
+
+The job endpoint accepts multipart `format`. Omitted format remains `point-and-click` for compatibility. Ready responses expose `job.game`; point-and-click responses also retain `job.episode`. Old stored jobs retain their old pipeline. New 3D jobs use `harbor-v1`, while new point-and-click jobs use `general-v1`.
+
+The shared browser library holds six generated games within its existing 3,000,000-character budget, with format-qualified identity. It reads legacy point-and-click entries individually and preserves the original storage key. Authored demos do not consume generated slots. Each player is loaded on demand and returns to the studio without navigating away.
+
+## Generated 3D scope
+
+The model selects exactly one quoted, source-grounded objective and generates exactly two cases. The second case applies the idea in a changed context. It generates the lesson configuration, station descriptions, discoveries, hints, dialogue and delivery story. A deterministic compiler binds these to a fixed island with two stations, a bridge, a parcel platform, two residents, an optional postcard favor and an explicit parcel delivery ending.
+
+- **Experiments:** one three-choice sample dock control, an optional two-to-eight-choice dial, and one to four visible computed outputs. Every allowed setting is checked for finite results. Initial settings fail; reference settings pass; the first case's reference setting must fail the transfer case. Numeric values and labels come from the source-specific model. The player must place the sample before submitting an attempt.
+- **Evidence crates:** three to six source-linked cards and two or three destination crates per case. The player reads a card, carries it to a category or ordered position, places it, and can retrieve it. Slot capacities and explicit accepted alternatives come from the source-specific configuration. Feedback explains the relationship. Longer ordered sequences, unsupported answer ambiguity and unavailable interactions should be rejected or scoped down.
+
+The model produces bounded data, never executable JavaScript. No topic whitelist or fallback to a canned torque/velocity lesson is used. Subjects still need enough explanatory material to support one of the available interactions. The island and characters are authored assets; generation does not create a bespoke world, new animation system, unrestricted physics or arbitrary gameplay.
+
+Source ingestion is unchanged: one pasted excerpt, readable public URL, UTF-8 TXT/Markdown or text PDF; 10 MB upload and 60 PDF page limits; up to 24,000 extracted characters. No scanned-page OCR, diagram interpretation, audio/video ingestion, source collections or topic-only research.
+
+## Checks and recovery
+
+Both pipelines persist completed learning, mechanics, story and review stages in private `.astraified/jobs/` files. One total repair pass is shared across deterministic and content failures. A separate model review must pass before release. Cancellation, interrupted calls and recoverable failures can resume within the existing three-attempt stage budgets. Keys and raw uploads are not written into checkpoints.
+
+The 3D runtime records real initial observations, submissions, hint counts and changed-case evidence. Saves replay their claims against the model. Missing observations in old saves remain missing. Completing the game demonstrates agreement with that model, not measured mastery or independent factual certification.
+
+## Verification
+
+**339 tests pass across 25 test files.** TypeScript and the main production build pass after the final presentation changes. This includes the existing point-and-click suite and both 3D kits. The main-page browser checks reported no console errors.
+
+The test providers used by automated job tests are isolated from the production provider; no fixture substitution is available in the live creator. Tests cover both generated kits, legacy saves, library migration, source quotation checks, deterministic replay, repair limits, cancellation and checkpoint recovery.
+
+Two real jobs were submitted through the main site's 3D source form on September 10, 2026, using pasted authored teaching notes. Both passed the separate model content review and are saved in the main browser's shared library:
+
+| Game | Generated lesson | Provider-reported usage |
+| --- | --- | --- |
+| **A Parcel of Evidence** | Producer, consumer and decomposer roles; two rounds of four source-linked cards, with the second distinguishing scavenging from decomposition | 11,541 input + 10,756 output = 22,297 tokens |
+| **A Current Delivery** | Maintain 2 A using the ideal relationship I = V/R: 8 V across 4 Ω, followed by 12 V across 6 Ω | 9,884 input + 3,492 output = 13,376 tokens |
+
+The first ecology planning attempt exhausted a 7,000-token output budget. Its failed checkpoint and usage were preserved. After narrowing planning to the single source-backed goal and moving apparatus design fully into the mechanics stage, the same job resumed successfully with low reasoning and a 10,000-token cap. The numerical job completed in four calls without a retry. Neither game required a mechanics/story repair. These counts describe returned provider usage, including the first failed ecology call, and are not a complete billing record.
+
+The numerical game was played from the main library through its full ending using normal browser controls. Its four meters displayed voltage, resistance, calculated current and target current. The bridge opened at 8 V; reusing 8 V at the changed 6 Ω station was rejected; 12 V succeeded. The parcel was physically collected and delivered to Moss. Field notes replayed two actual baselines and three submissions, and completion persisted when the game was reopened. Its QA progress was reset through the game menu so it is ready for a new player.
+
+The ecology game's main-site check opened a generated source card with its three category definitions, picked it up, returned to the shared library and reopened the same carried state. The original generated point-and-click game **The Exhibit That Bowed** and the authored **Windpost** also opened in the main page and returned to the same library. Existing generated point-and-click library entries remained available. All of these interactions stayed at `/`.
+
+The exact real ecology package also passed a complete physical browser playthrough using the unchanged 3D player through a temporary worktree QA entry. A deliberately wrong four-card arrangement was rejected. The player retrieved, dropped and carried cards again to correct it, crossed the bridge, sorted the changed second set, raised the parcel platform and delivered to Moss. The journal replayed both baselines, all eight final assignments and three submissions with zero hints. Carried cards and crate assignments survived a full reload and a fresh-tab restore after a browser-tool reconnection. The host's return-to-library callback also fired. The temporary entry and copied package were removed after verification; they are not a generation fallback or part of the main site.
+
+A third real job, **Special Delivery, Weighted Carefully**, used the site's editorial Transformer starter notes with an explicit attention focus. It completed in 120 seconds without a retry or repair, reporting 11,674 input and 5,517 output tokens. Its 18 allowed input combinations matched an independent softmax and weighted-sum calculation within 1.8 × 10⁻¹⁵; each case has one passing setting, and the first solution fails the changed case. Main-page browser checks verified movement, character dialogue, carrying and placing a value-pair token, and unchanged attention weights with a changed weighted output. Its test progress was reset and it remains in the local library. A complete browser playthrough was not performed for this third lesson.
+
+The Transformer review passed with one advisory issue that remains in the generated package: bridge feedback says a zero-valued term contributes because its attention weight is nonzero. The numerical calculation correctly makes that term zero. This lesson covers the notes' attention distinction, not embeddings, positional information or causal masking. Its numerical targets can also be reached through trial and error; clearer introductory explanations, token examples and predictions remain product improvements. Generated packages and their source records are private local data, not bundled Git fixtures.
+
+These checks establish concrete generation, rendering and runtime behavior for these limited lessons. They do not establish quality across arbitrary topics or independently measure learning effectiveness.

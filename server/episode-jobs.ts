@@ -12,6 +12,21 @@ import { resolve } from "node:path";
 import express from "express";
 import multer from "multer";
 import type { SourceRecord } from "../src/domain/types.js";
+import type { GameFormat, GamePackage } from "../src/games/types.js";
+import {
+  validateEpisodeFixture,
+  type EpisodeFixture,
+} from "../src/windpost/episodes.js";
+import type { HarborStory } from "../src/windpost/generated.js";
+import {
+  compileHarborStory,
+  defaultHarborProvider,
+  validateHarborPlan,
+  validateHarborMechanics,
+  type HarborProvider,
+  type HarborPlan,
+  type HarborMechanics,
+} from "./harbor-generation.js";
 import type { EpisodePackage } from "../src/episodes/types.js";
 import {
   createTransformerFixtures,
@@ -69,7 +84,9 @@ export interface EpisodeJobView {
   createdAt: string;
   updatedAt: string;
   warnings: string[];
-  pipeline?: "general-v1" | "legacy";
+  pipeline?: "general-v1" | "harbor-v1" | "legacy";
+  format?: GameFormat;
+  game?: GamePackage;
   learningPlan?: EpisodeLearningPlan | GeneralLearningPlan;
   episode?: EpisodePackage;
   error?: { code: string; message: string };
@@ -82,6 +99,18 @@ interface StoredJob extends Omit<EpisodeJobView, "resumable" | "learningPlan"> {
   level: string;
   sources: SourceRecord[];
   learningPlan?: EpisodeLearningPlan;
+  harborPlan?: HarborPlan;
+  harborMechanics?: HarborMechanics;
+  harborDraft?: HarborStory;
+  harborReview?: GeneralContentReview;
+  pendingHarborRepair?:
+    | {
+        kind: "mechanics";
+        draft: HarborMechanics;
+        issues: string;
+        attempts: number;
+      }
+    | { kind: "bundle"; issues: string; attempts: number };
   generalPlan?: GeneralLearningPlan;
   mechanics?: GeneralMechanics;
   generalDraft?: GeneralStory;
@@ -116,6 +145,8 @@ export interface EpisodeJobOptions {
   reviewedPuzzles?: ReviewedPuzzles;
   compile?: typeof compileEpisodeStory;
   /** New default pipeline. Legacy injections above remain available for old jobs/tests. */
+  harborProvider?: HarborProvider;
+  harborCompile?: typeof compileHarborStory;
   generalProvider?: GeneralProvider;
   generalCompile?: typeof compileGeneralStory;
   mechanicsTimeoutMs?: number;
@@ -163,6 +194,35 @@ function canResume(job: StoredJob): boolean {
     (!job.error || !RECOVERABLE.has(job.error.code))
   )
     return false;
+  if (job.pipeline === "harbor-v1") {
+    if (job.pendingHarborRepair)
+      return (
+        job.pendingHarborRepair.attempts < MAX_STAGE_ATTEMPTS &&
+        (job.pendingHarborRepair.kind !== "bundle" ||
+          (job.attempts.review || 0) < MAX_STAGE_ATTEMPTS)
+      );
+    if (!job.harborPlan && job.attempts.learning >= MAX_STAGE_ATTEMPTS)
+      return false;
+    if (
+      job.harborPlan &&
+      !job.harborMechanics &&
+      (job.attempts.mechanics || 0) >= MAX_STAGE_ATTEMPTS
+    )
+      return false;
+    if (
+      job.harborMechanics &&
+      !job.harborDraft &&
+      job.attempts.story >= MAX_STAGE_ATTEMPTS
+    )
+      return false;
+    if (
+      job.harborDraft &&
+      !job.harborReview?.passed &&
+      (job.attempts.review || 0) >= MAX_STAGE_ATTEMPTS
+    )
+      return false;
+    return true;
+  }
   if (job.pipeline === "general-v1") {
     if (job.pendingRepair)
       return (
@@ -236,7 +296,14 @@ function jobView(job: StoredJob): EpisodeJobView {
     error,
     usage,
     pipeline: job.pipeline || "legacy",
-    learningPlan: job.generalPlan || learningPlan,
+    format:
+      job.format || (job.pipeline === "harbor-v1" ? "3d" : "point-and-click"),
+    game:
+      job.game ||
+      (episode
+        ? { version: 1, format: "point-and-click", episode }
+        : undefined),
+    learningPlan: job.harborPlan || job.generalPlan || learningPlan,
     resumable: canResume(job),
   });
 }
@@ -299,6 +366,8 @@ export class EpisodeJobService {
   >;
   private compile: typeof compileEpisodeStory;
   private defaultPipeline: "general-v1" | "legacy";
+  private harborProvider: HarborProvider;
+  private harborCompile: typeof compileHarborStory;
   private generalProvider: GeneralProvider;
   private generalCompile: typeof compileGeneralStory;
   private mechanicsTimeout: number;
@@ -313,6 +382,8 @@ export class EpisodeJobService {
       (!options.provider && !options.compile && !options.reviewedPuzzles)
         ? "general-v1"
         : "legacy";
+    this.harborProvider = options.harborProvider || defaultHarborProvider;
+    this.harborCompile = options.harborCompile || compileHarborStory;
     this.generalProvider = options.generalProvider || defaultGeneralProvider;
     this.generalCompile = options.generalCompile || compileGeneralStory;
     this.extract = options.extract || extractSources;
@@ -430,10 +501,25 @@ export class EpisodeJobService {
     return key;
   }
   async create(
-    input: SourceInput & { topic?: string; level?: string },
+    input: SourceInput & {
+      topic?: string;
+      level?: string;
+      format?: GameFormat;
+    },
     signal?: AbortSignal,
   ): Promise<EpisodeJobView> {
     await this.ready;
+    if (
+      input.format !== undefined &&
+      !["point-and-click", "3d"].includes(input.format)
+    )
+      throw new SourceError(
+        400,
+        "Choose point-and-click or 3d as the game format.",
+        "invalid_game_format",
+      );
+    const format = input.format || "point-and-click";
+    const pipeline = format === "3d" ? "harbor-v1" : this.defaultPipeline;
     if (this.active || this.reserving)
       throw new SourceError(
         429,
@@ -458,7 +544,7 @@ export class EpisodeJobService {
         if (error instanceof SourceError && error.code === "source_required")
           throw new SourceError(
             422,
-            this.defaultPipeline === "general-v1"
+            pipeline !== "legacy"
               ? "Add source material with enough explanation for a focused lesson. A topic name alone is not enough."
               : "Add a focused source excerpt explaining token positions, attention, and causal masking. A topic name alone is not enough.",
             "source_required",
@@ -469,7 +555,8 @@ export class EpisodeJobService {
       const now = new Date().toISOString();
       const job: StoredJob = {
         version: 1,
-        pipeline: this.defaultPipeline,
+        pipeline,
+        format,
         id: randomUUID(),
         status: "queued",
         stage: "learning",
@@ -478,7 +565,7 @@ export class EpisodeJobService {
         updatedAt: now,
         topic: (
           input.topic ||
-          (this.defaultPipeline === "general-v1"
+          (pipeline !== "legacy"
             ? "A focused lesson from the supplied source"
             : "Transformer neural networks")
         ).slice(0, 300),
@@ -486,9 +573,11 @@ export class EpisodeJobService {
         sources: extracted.sources,
         warnings: [
           ...extracted.warnings,
-          this.defaultPipeline === "general-v1"
-            ? "A focused lesson: the model generates topic-specific simulations or evidence activities and story using the existing harbor art. Mechanical checks and a separate model content review run before release; completion is not proof of mastery."
-            : "This version generates the story and interactions around reviewed Transformer instruments and reuses the original harbor art kit.",
+          pipeline === "harbor-v1"
+            ? "One focused objective with two physical cases in the harbor: a generated experiment or source-linked card arrangement. Mechanical checks and a separate model content review run before release; completion is not proof of mastery."
+            : pipeline !== "legacy"
+              ? "A focused lesson: the model generates topic-specific simulations or evidence activities and story using the existing harbor art. Mechanical checks and a separate model content review run before release; completion is not proof of mastery."
+              : "This version generates the story and interactions around reviewed Transformer instruments and reuses the original harbor art kit.",
         ],
         usage: zeroUsage(),
         repairs: 0,
@@ -618,6 +707,7 @@ export class EpisodeJobService {
         job.usage[key] += usage[key];
   }
   private async run(job: StoredJob, signal: AbortSignal) {
+    if (job.pipeline === "harbor-v1") return this.runHarbor(job, signal);
     if (job.pipeline === "general-v1") return this.runGeneral(job, signal);
     try {
       signal.throwIfAborted();
@@ -1029,6 +1119,303 @@ export class EpisodeJobService {
       }
     }
   }
+
+  private async runHarbor(job: StoredJob, signal: AbortSignal) {
+    const base = () => ({
+      sources: job.sources,
+      topic: job.topic,
+      level: job.level,
+      apiKey: this.requireKey(),
+    });
+    const accepted = async <T>(result: GenerationResult<T>) => {
+      signal.throwIfAborted();
+      this.addUsage(job, result.usage);
+      await this.persist(job);
+      return result.value;
+    };
+    const requireReviewBudget = () => {
+      if ((job.attempts.review || 0) >= MAX_STAGE_ATTEMPTS) {
+        job.stage = "review";
+        throw new SourceError(
+          502,
+          "This job reached its three review-attempt limit. No further repair or review was started. Start a new job with revised material.",
+          "stage_attempts_exhausted",
+        );
+      }
+    };
+    const performPendingRepair = async () => {
+      const pending = job.pendingHarborRepair!;
+      if (pending.kind === "bundle") requireReviewBudget();
+      if (pending.attempts >= MAX_STAGE_ATTEMPTS)
+        throw new SourceError(
+          502,
+          "This repair reached its three explicit attempt limit. Start a new job with revised material.",
+          "repair_attempts_exhausted",
+        );
+      pending.attempts += 1;
+      job.stage = pending.kind === "mechanics" ? "mechanics" : "validation";
+      await this.persist(job);
+      if (pending.kind === "mechanics") {
+        const value = await accepted(
+          await this.stage(
+            signal,
+            (stageSignal) =>
+              this.harborProvider.repairMechanics({
+                ...base(),
+                plan: job.harborPlan!,
+                draft: pending.draft,
+                issues: pending.issues,
+                signal: stageSignal,
+                timeoutMs: this.mechanicsTimeout,
+              }),
+            this.mechanicsTimeout,
+          ),
+        );
+        job.harborMechanics = validateHarborMechanics(
+          value,
+          job.harborPlan!,
+          job.sources,
+        );
+      } else {
+        const value = await accepted(
+          await this.stage(
+            signal,
+            (stageSignal) =>
+              this.harborProvider.repairBundle({
+                ...base(),
+                plan: job.harborPlan!,
+                mechanics: job.harborMechanics!,
+                story: job.harborDraft!,
+                issues: pending.issues,
+                signal: stageSignal,
+                timeoutMs: this.storyTimeout,
+              }),
+            this.storyTimeout,
+          ),
+        );
+        job.harborMechanics = validateHarborMechanics(
+          value.mechanics,
+          job.harborPlan!,
+          job.sources,
+        );
+        job.harborDraft = value.story;
+      }
+      job.pendingHarborRepair = undefined;
+      await this.persist(job);
+    };
+    const repairBundle = async (issues: string) => {
+      if (job.repairs >= 1)
+        throw new SourceError(
+          502,
+          `The generated lesson still needs correction after its repair pass: ${issues}`.slice(
+            0,
+            1700,
+          ),
+          "invalid_episode",
+        );
+      requireReviewBudget();
+      job.repairs += 1;
+      job.progress = 83;
+      job.harborReview = undefined;
+      job.pendingHarborRepair = { kind: "bundle", issues, attempts: 0 };
+      await this.persist(job);
+      await performPendingRepair();
+    };
+    try {
+      signal.throwIfAborted();
+      job.status = "running";
+      await this.persist(job);
+      if (!job.harborPlan) {
+        job.stage = "learning";
+        job.progress = 18;
+        job.attempts.learning += 1;
+        await this.persist(job);
+        const value = await accepted(
+          await this.stage(
+            signal,
+            (stageSignal) =>
+              this.harborProvider.plan({
+                ...base(),
+                signal: stageSignal,
+                timeoutMs: this.learningTimeout,
+              }),
+            this.learningTimeout,
+          ),
+        );
+        job.harborPlan = validateHarborPlan(value, job.sources);
+        job.progress = 30;
+        await this.persist(job);
+      }
+      if (job.pendingHarborRepair?.kind === "mechanics")
+        await performPendingRepair();
+      if (!job.harborMechanics) {
+        job.stage = "mechanics";
+        job.progress = 35;
+        job.attempts.mechanics = (job.attempts.mechanics || 0) + 1;
+        await this.persist(job);
+        const value = await accepted(
+          await this.stage(
+            signal,
+            (stageSignal) =>
+              this.harborProvider.mechanics({
+                ...base(),
+                plan: job.harborPlan!,
+                signal: stageSignal,
+                timeoutMs: this.mechanicsTimeout,
+              }),
+            this.mechanicsTimeout,
+          ),
+        );
+        try {
+          job.harborMechanics = validateHarborMechanics(
+            value,
+            job.harborPlan,
+            job.sources,
+          );
+        } catch (error) {
+          if (job.repairs >= 1) throw error;
+          job.repairs += 1;
+          job.pendingHarborRepair = {
+            kind: "mechanics",
+            draft: value,
+            issues: publicError(error).message,
+            attempts: 0,
+          };
+          await this.persist(job);
+          await performPendingRepair();
+        }
+        job.progress = 50;
+        await this.persist(job);
+      }
+      if (!job.harborDraft) {
+        job.stage = "story";
+        job.progress = 55;
+        job.attempts.story += 1;
+        await this.persist(job);
+        job.harborDraft = await accepted(
+          await this.stage(
+            signal,
+            (stageSignal) =>
+              this.harborProvider.story({
+                ...base(),
+                plan: job.harborPlan!,
+                mechanics: job.harborMechanics!,
+                signal: stageSignal,
+                timeoutMs: this.storyTimeout,
+              }),
+            this.storyTimeout,
+          ),
+        );
+        job.progress = 75;
+        await this.persist(job);
+      }
+      let episode: EpisodeFixture;
+      if (job.pendingHarborRepair?.kind === "bundle")
+        await performPendingRepair();
+      while (true) {
+        signal.throwIfAborted();
+        job.stage = "validation";
+        job.progress = 78;
+        await this.persist(job);
+        try {
+          episode = this.harborCompile({
+            raw: job.harborDraft,
+            plan: job.harborPlan,
+            mechanics: job.harborMechanics!,
+            sources: job.sources,
+            level: job.level,
+            id: `generated-${job.id}`,
+            createdAt: job.createdAt,
+          });
+        } catch (error) {
+          await repairBundle(publicError(error).message);
+          continue;
+        }
+        if (!job.harborReview) {
+          requireReviewBudget();
+          job.stage = "review";
+          job.progress = 90;
+          job.attempts.review = (job.attempts.review || 0) + 1;
+          await this.persist(job);
+          const value = await accepted(
+            await this.stage(
+              signal,
+              (stageSignal) =>
+                this.harborProvider.review({
+                  ...base(),
+                  plan: job.harborPlan!,
+                  mechanics: job.harborMechanics!,
+                  story: job.harborDraft!,
+                  signal: stageSignal,
+                  timeoutMs: this.reviewTimeout,
+                }),
+              this.reviewTimeout,
+            ),
+          );
+          job.harborReview = validateGeneralReview(value, job.harborPlan);
+          await this.persist(job);
+        }
+        if (!job.harborReview.passed) {
+          const issues =
+            job.harborReview.issues
+              .filter((issue) => issue.severity === "blocking")
+              .map(
+                (issue) =>
+                  `${issue.objectiveId || "story"}: ${issue.problem} Repair: ${issue.repair}`,
+              )
+              .join("\n") || job.harborReview.summary;
+          if (job.repairs >= 1)
+            throw new SourceError(
+              502,
+              `The independent content review found unresolved teaching problems: ${issues}`.slice(
+                0,
+                1700,
+              ),
+              "content_review_failed",
+            );
+          await repairBundle(issues);
+          continue;
+        }
+        break;
+      }
+      signal.throwIfAborted();
+      episode = structuredClone(episode);
+      episode.generation = {
+        ...episode.generation!,
+        review: { status: "passed", summary: job.harborReview!.summary },
+      };
+      job.warnings.push(
+        ...job
+          .harborReview!.issues.filter((issue) => issue.severity === "advisory")
+          .map((issue) => `Content review note: ${issue.problem}`),
+      );
+      job.game = {
+        version: 1,
+        format: "3d",
+        episode: validateEpisodeFixture(episode),
+      };
+      job.status = "ready";
+      job.stage = "ready";
+      job.progress = 100;
+      job.error = undefined;
+      await this.persist(job);
+    } catch (error) {
+      if (error instanceof EpisodeGenerationError && error.usage)
+        this.addUsage(job, error.usage);
+      if (signal.aborted) {
+        job.status = "cancelled";
+        job.error = undefined;
+      } else {
+        job.status = "failed";
+        job.error = publicError(error);
+      }
+      try {
+        await this.persist(job);
+      } catch {
+        /* A sanitized in-memory failure remains available. */
+      }
+    }
+  }
 }
 
 const DEFAULT_WEB_ORIGINS = ["http://127.0.0.1:5173", "http://localhost:5173"];
@@ -1097,7 +1484,13 @@ export function createEpisodeRouter(options: EpisodeJobOptions = {}) {
       });
       try {
         const fields = request.body || {};
-        for (const name of ["sourceText", "sourceUrl", "level", "topic"])
+        for (const name of [
+          "sourceText",
+          "sourceUrl",
+          "level",
+          "topic",
+          "format",
+        ])
           if (fields[name] !== undefined && typeof fields[name] !== "string")
             throw new SourceError(400, `Provide one text value for ${name}.`);
         const job = await service.create(
@@ -1106,6 +1499,7 @@ export function createEpisodeRouter(options: EpisodeJobOptions = {}) {
             sourceUrl: fields.sourceUrl,
             level: fields.level,
             topic: fields.topic,
+            format: fields.format,
             file: request.file,
           },
           controller.signal,
