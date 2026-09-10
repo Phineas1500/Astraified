@@ -5,7 +5,7 @@
 Astraified turns explanatory sources into learning games. The main **adventure studio** lets you choose **3D exploration** or **Point & click**, create from the same source form, and play both formats inside the same page. Generated games share one library, while each game keeps its own progress.
 
 - **3D exploration:** walk and jump around a harbor as Piper, talk with Moss and Bea, carry objects, and apply one source-grounded idea in two connected cases. The generator creates either an experiment with physical controls and computed gauges or source-linked cards you carry into meaningful categories. It uses the existing island and characters.
-- **Point & click:** investigate illustrated rooms, talk with characters, collect and combine items, and solve two or three generated learning activities. The generator creates the lesson and mystery using the existing room artwork.
+- **Point & click:** investigate illustrated rooms, talk with characters, collect and combine items, and solve two small, connected learning activities. The generator creates the lesson and mystery using the existing room artwork.
 
 Neither mode uses a subject whitelist. Supported scope depends on what the source and available interaction forms can faithfully teach; neither promises arbitrary new mechanics or complete subject coverage.
 
@@ -14,6 +14,8 @@ Four authored games work without an API key: **Windpost** (balance and torque), 
 See [docs/UNIFIED_GAMES.md](docs/UNIFIED_GAMES.md) for the shared interface and current 3D limits. The broader direction remains in [SOURCE_TO_ADVENTURE.md](SOURCE_TO_ADVENTURE.md) and [POINT_AND_CLICK_DIRECTION.md](POINT_AND_CLICK_DIRECTION.md).
 
 ## Run locally
+
+For the hosted frontend with generation on a laptop, see [docs/HOSTING.md](docs/HOSTING.md). This uses a protected API connection and leaves the local development workflow below available separately.
 
 Use Node.js **26+** with npm. This project was developed with Node 26.7.0; the lockfile pins dependencies that require a recent Node runtime.
 
@@ -59,11 +61,11 @@ Generated lessons use two kinds of activity:
 | Simulation           | Take a baseline reading, adjust numerical controls, choices, or toggles, and observe computed outputs and an optional curve plot | Source-specific equations and goal conditions execute locally. Every task starts unsolved and needs an intervention that changes an output. Selected outputs can use automatic differentiation. |
 | Evidence arrangement | Inspect several source-linked artifacts and place them into ordered positions or meaningful categories                           | Complete assignments are checked against the generated accepted arrangements and slot capacities. A round can allow more than one defensible answer. Feedback explains the relationship.        |
 
-Each activity contains two to four tasks or rounds, ending with a changed transfer case. The runtime replays the recorded readings or arrangements before accepting completion. It does not grade freeform explanations or ask a model to approve a player's answer during gameplay. A successful simulation proves agreement with the supplied model; a successful arrangement matches its configured answer set. Neither establishes that the model or answer key is educationally correct.
+Newly generated activities contain exactly two short tasks or rounds: an explained first example and a gently changed practice case. Older saved activities may contain up to four. The runtime replays the recorded readings or arrangements before accepting completion. It does not grade freeform explanations or ask a model to approve a player's answer during gameplay. A successful simulation proves agreement with the supplied model; a successful arrangement matches its configured answer set. Neither establishes that the model or answer key is educationally correct.
 
 ## Generate an adventure from your source
 
-In the studio, choose **3D exploration** or **Point & click**, supply one source, optionally describe a focus, select a learner level, and choose **Create my adventure**. The studio includes example links for derivatives, the US Constitution, and Transformers, plus Transformer starter notes. These are starting points, not a list of permitted subjects.
+In the studio, choose **3D exploration** or **Point & click**, supply one source, optionally describe a focus, choose your starting point (default: curious beginner with no prior knowledge), and choose **Create my adventure**. The studio includes example links for derivatives, the US Constitution, and Transformers, plus Transformer starter notes. These are starting points, not a list of permitted subjects.
 
 | Input       | Current support                                                  |
 | ----------- | ---------------------------------------------------------------- |
@@ -73,9 +75,13 @@ In the studio, choose **3D exploration** or **Point & click**, supply one source
 
 PDFs are limited to 60 pages. Generation uses at most **24,000 extracted characters**, retaining excerpts and page references where available. Ingestion is text-only: scanned pages require OCR before upload, and embedded diagrams are not interpreted. HTML extraction preserves common MathML fractions, powers, roots and limit notation; it prefers original TeX annotations when present. A topic guides the focus, but **topic-only research is not implemented**. Multiple-source collections and additional document formats are future work.
 
-For point-and-click, the `general-v1` pipeline has no fixed subject list. It selects **two focused learning goals by default, or three when needed**, grounded in quotations from the supplied text. A chapter on an unfamiliar subject can be considered without adding a hand-authored topic adapter. Material can still be rejected when it is insufficient, incoherent, contradictory, or cannot support two honest activities using the current primitives. A whole course needs several focused adventures.
+Public HTML downloads may contain up to **10 MB**, allowing exported lectures with embedded images. A non-executing HTML parser removes embedded asset URLs, scripts and styles before the full text-extraction DOM is built. Retained markup is limited to **2 MB**, with element and nesting bounds; the learning context still stops at 24,000 extracted characters. Public plain-text/Markdown downloads remain limited to 2 MB, and PDFs to 10 MB. Linked images, scripts and stylesheets are not fetched.
+
+For point-and-click, the `general-v1` pipeline has no fixed subject list. It selects **exactly two small, closely related foundational learning goals**, grounded in quotations from the supplied text. A chapter on an unfamiliar subject can be considered without adding a hand-authored topic adapter. Material can still be rejected when it is insufficient, incoherent, contradictory, or cannot support two honest activities using the current primitives. A whole course needs several focused adventures.
 
 The 3D `harbor-v1` pipeline instead selects one focused objective and builds two physical cases using the same bounded simulation/evidence interpreter. It uses a compact 3D story compiler and the same checkpoint, repair, source-grounding and separate content-review process. Its smaller control and card limits are documented in [docs/UNIFIED_GAMES.md](docs/UNIFIED_GAMES.md).
+
+New lessons in both modes start with the intuition, define essential terms before using them, and show a small example before asking the learner to act. Generator-only schemas limit each experiment to **one control and one or two readouts**, or each sorting round to **three cards and two categories**. Prompts and feedback have short text budgets; the second case changes one feature without adding another concept. Source claims, units and important assumptions remain intact, with extra detail in the existing notes. The review stage treats missing prerequisite explanations and excessive task complexity as blocking findings. These are generation defaults, not a guarantee of teaching quality; existing library games are not rewritten.
 
 Generation proceeds through these stages (the detailed quest structure below describes point-and-click):
 
@@ -89,7 +95,7 @@ This review is performed by the same configured model in a separate call; it is 
 
 The API returns a versioned **game package** with its format and episode. Point-and-click episodes preserve their existing contract: source references, two or three learning objectives, scenes, inventory items, discoveries, declarative rules, generated activity configurations, hints, a completion condition, and a reference playthrough. The player interprets this data through shared code. Generated expressions use a limited arithmetic/logic language rather than executable JavaScript.
 
-Current bounds matter: simulations support up to six controls, eight outputs, and one plot; expressions support bounded arithmetic, comparisons, conditionals, common mathematical functions, and supported first derivatives. Evidence activities arrange three to ten cards into two to eight slots, with explicit accepted alternatives. These primitives can represent many quantitative and interpretive lessons, but not arbitrary laboratory equipment, every mathematical structure, or open-ended essay assessment. The model should explain illustrative assumptions and avoid presenting contested interpretations as uniquely correct answers.
+The saved runtime format supports richer older lessons: simulations allow up to six controls, eight outputs, and one plot; expressions support bounded arithmetic, comparisons, conditionals, common mathematical functions, and supported first derivatives. Evidence activities arrange three to ten cards into two to eight slots, with explicit accepted alternatives. These primitives can represent many quantitative and interpretive lessons, but not arbitrary laboratory equipment, every mathematical structure, or open-ended essay assessment. The model should explain illustrative assumptions and avoid presenting contested interpretations as uniquely correct answers.
 
 Episodes reuse the six illustrated Bramble Bay room backgrounds, existing character/prop assets and bounded quest structures. Source-specific activities and narrative are generated; code supplies reliable interaction rules and spatial placement. Unique artwork, arbitrary executable mechanics, unrestricted world simulation, and new game genres are not generated by this pipeline yet.
 

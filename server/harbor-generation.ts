@@ -24,6 +24,10 @@ import {
   type GeneralContentReview,
 } from "./general-generation.js";
 import { MODEL } from "./generation.js";
+import {
+  generationSentence,
+  simpleHarborMachineSchema,
+} from "./generation-simplicity.js";
 
 export const harborPlanSchema = generalLearningPlanSchema
   .extend({
@@ -130,15 +134,15 @@ export function compileHarborStory(input: {
 }
 
 const KIT = `SUPPORTED 3D KIT: A third-person bird courier explores one small harbor. Two physical stations open a bridge then raise a parcel platform. The player meets Moss at the first station, Bea across the bridge at the second, collects a parcel and returns it to Moss. The lesson has EXACTLY ONE source-grounded objective and EXACTLY TWO cases: first transfer:false, second transfer:true. Both cases use the same simulation or both use evidence sorting. You generate subject-specific data and story for this kit, not JavaScript, new geometry, freeform construction, combat or bespoke animations.
-SIMULATION: First control MUST be choice with EXACTLY THREE labelled numeric options, physically selected by carrying a sample token into one of three docks. Optional second control MUST be choice with 2–8 labelled options, selected by cycling a dial. No number/toggle/fixed/hidden controls. All task inputs contain exactly these controls. Use 1–4 labelled visible outputs, no plots, derivativeWrt:null (there is no continuous control). Enumerated settings must all evaluate finitely. Activation checks the actual computed goal, not whether controls match a password. Clearly display the target in each case prompt. The initial setting must fail, a meaningful changed setting must pass, and the transfer case must need a different solution. A single token suffices; never ask to carry or combine multiple tokens.
-EVIDENCE: EXACTLY TWO rounds of 3–6 source-linked cards and 2–3 labelled destination crates, with usable capacities and every card assigned once. E picks up and reads a card; the player carries it to a crate, places it, retrieves misplaced cards, then stamps/checks the complete arrangement. Classification and comparison suit this kit; ordering more than three positions does not. Each accepted answer contains one slot ID per card in array order. Teach a source-supported distinction; don't use hidden answer labels or merely matching identical words. Use changed cards/context in the transfer case. Both rounds use their own explicit slot labels and card explanations. Never substitute the authored torque or velocity fixture for a source's actual concept.`;
+SIMULATION: First control MUST be choice with EXACTLY THREE labelled numeric options, physically selected by carrying a sample token into one of three docks. There is EXACTLY ONE control: the three-choice sample. No second dial, number/toggle/fixed/hidden controls. Hold other factors constant within each case. All task inputs contain exactly these controls. Use 1–2 plainly labelled visible outputs, no plots, derivativeWrt:null (there is no continuous control). Enumerated settings must all evaluate finitely. Activation checks the actual computed goal, not whether controls match a password. Clearly display the target in each case prompt. The initial setting must fail, a meaningful changed setting must pass, and the transfer case must need a different solution. A single token suffices; never ask to carry or combine multiple tokens.
+EVIDENCE: EXACTLY TWO rounds of exactly 3 short source-linked cards and exactly 2 labelled destination crates, with usable capacities and every card assigned once. E picks up and reads a card; the player carries it to a crate, places it, retrieves misplaced cards, then stamps/checks the complete arrangement. Use classification and comparison with two categories, not ordering into separate positions. Each accepted answer contains one slot ID per card in array order. Teach a source-supported distinction; don't use hidden answer labels or merely matching identical words. Use changed cards/context in the transfer case. Both rounds use their own explicit slot labels and card explanations. Never substitute the authored torque or velocity fixture for a source's actual concept.`;
 const PLAN = `Select EXACTLY ONE focused learning objective for a short third-person learning adventure. ${REFERENCES}
 This stage only selects the objective, claim, misconception, boundary and supporting exact quotation. Do not design apparatus, equations, specific cards, answer keys or narrative here; later stages do that. Be concise.
-There is no subject whitelist. Choose approach simulation when the source supports an honest quantitative relationship that can be explored using a three-choice sample and optionally a finite dial, with visible computed gauges. Choose evidence when the source supports defensible classifications/comparisons using 3–6 cards and 2–3 categories. Either approach will have an introductory case and a changed application case. Prefer evidence for qualitative distinctions; do not force arithmetic onto them.
+There is no subject whitelist. First choose the most approachable source-supported idea within the focus, then choose its interaction; do not select an advanced concept just because its formula is easy to model. Choose simulation when a simple source-supported relationship can be explored using only a three-choice sample and one or two visible gauges. Choose evidence for a basic distinction or comparison using 3 short cards and 2 categories. Either approach will have an introductory case and a changed application case. Prefer evidence for qualitative distinctions; do not force arithmetic onto them.
 Return supported:false and objectives:[] only when the material lacks enough explanatory content for either interaction. When supported, return exactly one source-grounded objective. Keep learnerAction conceptual and brief. Return the strict plan object only.`;
-const MECHANICS = `${MACHINE_INSTRUCTIONS}\nThe following 3D constraints replace all point-and-click control/count guidance above. ${KIT}\nReturn {config} for the one supplied objective. All controls must be physically usable with this kit. Both cases should be short and source-specific.`;
+const MECHANICS = `${MACHINE_INSTRUCTIONS}\nThe following 3D constraints replace all point-and-click control/count guidance above. ${KIT}\nReturn {config} for the one supplied objective. All controls must be physically usable with this kit. Both cases should be short and source-specific. The task prompt is also the permanent quest text and the character's instruction: keep it action-first, ideally 25–45 words, with the rule and one visible goal. The first case includes a tiny worked example, followed by a different action for the player. The second changes just one feature while retaining the same explanation; never add a second concept or a calculation to do mentally.`;
 const STORY = `Write a compact, warm, witty original story for this third-person learning adventure. ${REFERENCES}\n${KIT}
-Use supplied source-specific machine briefs without rewriting their formulas, prompts or answer keys. The compiler supplies route logic and uses the machine prompts/feedback as authoritative instructions. You write title, subtitle, description, briefing, ending, two station stories and flavor lines. Each station has title,itemLabel,intro,retry,success,three progressively useful hints,and one discovery {title,text}. Flavor contains mossWelcome,mossReturn,mossEnding,beaWelcome,beaReturn,beaEnding,postcardText,favorThanks. A misplaced postcard delivered to Bea is optional and never gates the lesson. Piper is the visible bird courier, Moss and Bea are fixed characters. No other required characters, inventory tools, rooms or actions. The fixed bridge and parcel lift are rewards for applying a model, not evidence that unrelated source concepts physically control these machines. Keep dialogue short (one or two sentences), have characters react naturally, and make the delivery matter. Put precise source concepts and limits in discoveries and lesson prompts; keep technical validation and software language out of dialogue. Do not claim a new visual scene, generated art, graded freeform answers or measured learning mastery.`;
+Use supplied source-specific machine briefs without rewriting their formulas, prompts or answer keys. The compiler supplies route logic and uses the machine prompts/feedback as authoritative instructions. You write title, subtitle, description, briefing, ending, two station stories and flavor lines. Each station has title,itemLabel,intro,retry,success,three progressively useful hints,and one discovery {title,text}. Flavor contains mossWelcome,mossReturn,mossEnding,beaWelcome,beaReturn,beaEnding,postcardText,favorThanks. A misplaced postcard delivered to Bea is optional and never gates the lesson. Piper is the visible bird courier, Moss and Bea are fixed characters. No other required characters, inventory tools, rooms or actions. The fixed bridge and parcel lift are rewards for applying a model, not evidence that unrelated source concepts physically control these machines. Keep dialogue short (one or two sentences), have characters react naturally, and make the delivery matter. The three hints should first name a visible next action, then explain the relevant rule in plain language, then give a concrete worked next step. Use brief familiar labels; explain an essential technical term before asking the player to use it. Keep each spoken line under 25 words and discoveries under 70 words. Put precise source concepts and limits in discoveries and lesson prompts; keep technical validation and software language out of dialogue. Do not claim a new visual scene, generated art, graded freeform answers or measured learning mastery.`;
 const REVIEW = `${REVIEW_INSTRUCTIONS}\n${KIT}\nReview the complete 3D source lesson, including physical usability of every control/card, truthful harbor metaphor, first case and changed transfer case. Confirm the prompts name visible targets; clues and labels support reasoning without guessing hidden settings. It is a model content review, not human approval.`;
 
 export interface HarborProvider {
@@ -180,6 +184,47 @@ const facts = (input: EpisodeProviderInput) => ({
   level: input.level,
   untrustedSourceRecords: input.sources,
 });
+// These narrower authoring limits do not change the persisted fixture contract.
+const simpleMechanicsSchema = harborMechanicsSchema.extend({
+  config: simpleHarborMachineSchema,
+});
+const copy = z.string().min(1);
+const briefLine = generationSentence(240);
+const simpleStationSchema = harborStorySchema.shape.stations.element.extend({
+  title: copy.max(60),
+  itemLabel: copy.max(60),
+  intro: briefLine,
+  retry: briefLine,
+  success: briefLine,
+  hints: z.array(briefLine).length(3),
+  discovery: z
+    .object({ title: copy.max(80), text: generationSentence(500) })
+    .strict(),
+});
+const simpleStorySchema = harborStorySchema.extend({
+  title: copy.max(80),
+  subtitle: copy.max(120),
+  description: generationSentence(400),
+  briefing: generationSentence(400),
+  ending: generationSentence(400),
+  stations: z.array(simpleStationSchema).length(2),
+  flavor: z
+    .object({
+      mossWelcome: briefLine,
+      mossReturn: briefLine,
+      mossEnding: briefLine,
+      beaWelcome: briefLine,
+      beaReturn: briefLine,
+      beaEnding: briefLine,
+      postcardText: briefLine,
+      favorThanks: briefLine,
+    })
+    .strict(),
+});
+const simpleRepairSchema = harborRepairSchema.extend({
+  mechanics: simpleMechanicsSchema,
+  story: simpleStorySchema,
+});
 export const defaultHarborProvider: HarborProvider = {
   plan: (input) =>
     request(
@@ -195,7 +240,7 @@ export const defaultHarborProvider: HarborProvider = {
   mechanics: (input) =>
     request(
       input,
-      harborMechanicsSchema,
+      simpleMechanicsSchema,
       "astraified_harbor_mechanics",
       MECHANICS,
       { ...facts(input), learningPlan: input.plan },
@@ -204,7 +249,7 @@ export const defaultHarborProvider: HarborProvider = {
   story: (input) =>
     request(
       input,
-      harborStorySchema,
+      simpleStorySchema,
       "astraified_harbor_story",
       STORY,
       {
@@ -238,7 +283,7 @@ export const defaultHarborProvider: HarborProvider = {
   repairMechanics: (input) =>
     request(
       input,
-      harborMechanicsSchema,
+      simpleMechanicsSchema,
       "astraified_harbor_mechanics_repair",
       `${MECHANICS}\nRepair these explicit validation findings. Return the complete corrected config. This is the single allowed repair pass.`,
       {
@@ -252,7 +297,7 @@ export const defaultHarborProvider: HarborProvider = {
   repairBundle: (input) =>
     request(
       input,
-      harborRepairSchema,
+      simpleRepairSchema,
       "astraified_harbor_bundle_repair",
       `${MECHANICS}\n${STORY}\nRepair the complete mechanics and story together using the explicit findings. Preserve the objective and source evidence. Return {mechanics:{config},story}; all checks and content review run again. This is the single allowed repair pass.`,
       {

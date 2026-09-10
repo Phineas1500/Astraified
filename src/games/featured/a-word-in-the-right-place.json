@@ -1,0 +1,307 @@
+{
+  "version": 1,
+  "format": "3d",
+  "episode": {
+    "version": 1,
+    "generated": true,
+    "level": "Curious beginner (no prior knowledge)",
+    "generation": {
+      "model": "gpt-6-astra",
+      "createdAt": "2026-09-10T20:14:58.008Z",
+      "review": {
+        "status": "passed",
+        "summary": "This model content review found no blocking issues in the single objective, either sorting case, or the harbor story. The lesson accurately teaches the source-supported distinction between preserving word order and retaining words alone, without claiming to explain the full architecture. Fictional examples and game rewards are clearly separated from factual claims. The first case provides a usable example before action; the transfer case tests the same principle against misleading visual arrangement. Both answer keys are defensible, and feedback explains the reasoning. This is not empirical learning validation or teacher certification."
+      }
+    },
+    "id": "generated-0b9d0929-a922-44c1-8b89-fc2c1a676c13",
+    "revision": 1,
+    "title": "A Word in the Right Place.",
+    "subtitle": "Piper delivers a little order.",
+    "description": "Piper, a bird courier, has one harbor parcel to bring home to Moss. Two sorting stops explore whether a record keeps word order or just words.",
+    "briefing": "Moss's parcel holds the address labels for tomorrow's deliveries. Guide Piper to Moss at the bridge to begin.",
+    "ending": "Piper returns the parcel, and tomorrow's deliveries have their address labels at last. Moss can retire the plan to navigate by optimism.",
+    "sources": [
+      {
+        "id": "web-1",
+        "title": "transformers_part1 · excerpt 1",
+        "text": "1.1. Written language is a sequence of words¶A sentence is clearly a sequence of words\nI don't like avocado thank\nOur task is to predict the next word\nI don't like avocado thank => you\nHowever, sometimes, one can undertand the meaning of a sentence from just its words without their relative ordering (bag of words):\n{avocado, like, thank, I, do, n't}\nStatistically, using just the set of words above, we can even predict the next word: \"you\"\nJust learning a set of words rather than their relative order in the sequence is statistically easier, since the absence of order requires fewer samples.\nConsider the above example. How many more training examples are needed if we have to discern between:\nI don't like avocado thank\navocado I don't like thank\nI avocado don't like thank\n\n2.2. A GNN for a sequence of $n$ tokens¶A Message-passing GNN can produce node embeddings for arbitrary sized graphs. Could we use Message-passing GNNs to produce sequence representations of arbitrary size?\nConsider the following self-attention graph $G = (V,E,X)$, with\n\nVertex set $V=\\{1,\\ldots,n\\}$\nVertex attributes $X= \\{x_i\\}_{i \\in V}$.\n\nAnd edges $E$ as a function of the vertex attributes $X$:\n\nThe adjacency matrix (edge weights) of $G$ is ${\\bf A}$, such that element ${\\bf A}_{ij}$ is a function of the vertex attributes of $i,j \\in V$: $${\\bf A}_{ij} = \\alpha(x_i,x_j; {\\bf W}_\\alpha),$$ where $\\alpha(\\cdot, \\cdot; {\\bf W}_\\alpha)$ is a neural network parameterized by ${\\bf W}_\\alpha$.\n\nWe will call $\\alpha$ the self-attention mechanism, a value between (0,1).\nIt is called self-attention because it maps elements of $x_1,\\ldots,x_n$ on themselves.\n\nConsider the sentence\n\nI don't like avocado, thank\n\nThe feature set of the vertices is a vector that describe the word\n$$X=\\{(x_\\text{avocado}), (x_\\text{like}), (x_\\text{thank}), (x_\\text{I}), (x_\\text{don't})\\}$$\nAnd recall that\n$${\\bf A}_{ij} = \\alpha(x_i,x_j; {\\bf W}_\\alpha),$$\n\nProposition: If $\\Gamma_G({\\bf A}_{1,1}, {\\bf A}_{1,2},\\ldots,{\\bf A}_{n,n},x'_1,\\ldots,x'_n)$ is a graph representation of $G$.\n\nThen, $\\Gamma_G$ is also a permutation-equivariant representation of the sequence $x'_1,\\ldots,x'_n$.\n\nProof: If $\\Gamma_G({\\bf A}_{1,1}, {\\bf A}_{1,2},\\ldots,{\\bf A}_{n,n},x'_1,\\ldots,x'_n)$ is a graph representation, it must be equivariant to joint permutations:\n$$\\Gamma_G({\\bf A}_{1,1}, {\\bf A}_{1,2},\\ldots,{\\bf A}_{n,n},x'_1,\\ldots,x",
+        "url": "https://www.cs.purdue.edu/homes/ribeirob/courses/Spring2026/lectures/15Transformers/transformers_part1.html"
+      },
+      {
+        "id": "web-2",
+        "title": "transformers_part1 · excerpt 2",
+        "text": "'_n)_{i,\\cdot} = \\Gamma_G({\\bf A}_{\\pi \\circ 1,\\pi \\circ 1}, {\\bf A}_{\\pi \\circ 1,\\pi \\circ 2},\\ldots,{\\bf A}_{\\pi \\circ n,\\pi \\circ n},x'_{\\pi \\circ 1},\\ldots,x'_{\\pi \\circ n})_{\\pi^{-1} \\circ i,\\cdot}, \\: \\forall \\pi \\in \\mathbb{S}_n.$$\nSince ${\\bf A}_{\\pi \\circ i,\\pi \\circ j} = \\alpha(x'_{\\pi \\circ i},x'_{\\pi \\circ j}; \\cdot)$, the representation $\\Gamma_G$ only depends on $x'_1,\\ldots,x'_n$ and is, by its definition, invariant to a shuffling of the input sequence $x'_{\\pi' \\circ 1},\\ldots,x'_{\\pi' \\circ n}$, $\\forall \\pi' \\in \\Pi_n$.\n\n4.1.1. Multi-Query Attention (MQA) and Grouped Query Attention (GQA)¶As LLMs are deployed for inference at scale, a key bottleneck emerges: the KV cache. During autoregressive generation, the key and value tensors for all past tokens must be recomputed or cached per attention head. With $H$ heads, the KV cache scales as $O(H \\cdot n \\cdot d_k)$, which becomes prohibitively expensive for long sequences and large batches.\nTwo widely-adopted variants reduce this cost:\nMulti-Query Attention (MQA) — Shazeer (2019)¶MQA uses a single shared key and value projection across all query heads. Only the query projections remain head-specific:\n$$\\mathbf{Q}^h = \\mathbf{X}\\mathbf{W}_Q^h \\in \\mathbb{R}^{n \\times d_k}, \\quad h = 1,\\ldots,H$$\n$$\\mathbf{K} = \\mathbf{X}\\mathbf{W}_K \\in \\mathbb{R}^{n \\times d_k}, \\quad \\mathbf{V} = \\mathbf{X}\\mathbf{W}_V \\in \\mathbb{R}^{n \\times d_v} \\quad \\text{(shared across all heads)}$$\nThe attention output for head $h$ is:\n$$\\mathbf{Z}^h = \\text{softmax}\\!\\left(\\frac{\\mathbf{Q}^h \\mathbf{K}^T}{\\sqrt{d_k}}\\right)\\mathbf{V}$$\n\nThe KV cache is reduced by a factor of $H$ compared to standard MHA, since there is only one key and value matrix.\nHowever, MQA can degrade model quality on complex reasoning tasks due to the loss of diversity in key/value representations.\n\nTiling Algorithm¶Partition $\\mathbf{Q}$, $\\mathbf{K}$, $\\mathbf{V}$ into blocks of size $B_r \\times d_k$ and $B_c \\times d_k$ that fit in SRAM. For each tile of queries, iterate over tiles of keys and values, accumulating the output using the online softmax trick:\nOnline softmax computes $\\text{softmax}(\\mathbf{a}) \\cdot \\mathbf{V}$ incrementally without materializing all scores:\nFor each block $j$ of keys/values, maintain running statistics:\n$$m_j = \\max(m_{j-1},\\, \\text{rowmax}(\\mathbf{S}_j)), \\quad \\ell_j = e^{m_{j-1}-m_j} \\ell_{j-1} + \\text{rowsu",
+        "url": "https://www.cs.purdue.edu/homes/ribeirob/courses/Spring2026/lectures/15Transformers/transformers_part1.html"
+      },
+      {
+        "id": "web-3",
+        "title": "transformers_part1 · excerpt 3",
+        "text": "m}(e^{\\mathbf{S}_j - m_j})$$\n$$\\mathbf{O}_j = \\text{diag}(\\ell_j)^{-1}\\!\\left(e^{m_{j-1}-m_j}\\,\\text{diag}(\\ell_{j-1})\\,\\mathbf{O}_{j-1} + e^{\\mathbf{S}_j - m_j}\\mathbf{V}_j\\right)$$\nwhere $\\mathbf{S}_j = \\mathbf{Q}_i \\mathbf{K}_j^T / \\sqrt{d_k}$ is the partial score block. This produces numerically identical results to standard softmax attention.",
+        "url": "https://www.cs.purdue.edu/homes/ribeirob/courses/Spring2026/lectures/15Transformers/transformers_part1.html"
+      }
+    ],
+    "objectives": [
+      {
+        "id": "objective-1",
+        "title": "Distinguish ordered words from a bag of words.",
+        "sourceIds": ["web-1"],
+        "claim": "A sentence presents words in order. A bag of words keeps the words without their relative order; this can sometimes still provide enough information to predict the next word.",
+        "boundaries": "Focus only on whether a representation preserves word order. Do not imply that order never matters or explain the full attention architecture.",
+        "misconception": "Keeping all the words automatically keeps their order.",
+        "evidence": [
+          {
+            "sourceId": "web-1",
+            "quote": "However, sometimes, one can undertand the meaning of a sentence from just its words without their relative ordering (bag of words):\n{avocado, like, thank, I, do, n't}\nStatistically, using just the set of words above, we can even predict the next word: \"you\""
+          }
+        ]
+      }
+    ],
+    "puzzles": [
+      {
+        "id": "source-lesson",
+        "title": "Distinguish ordered words from a bag of words.",
+        "instructions": "A bag of words keeps words without their relative order. Words alone can sometimes help predict what comes next, but keeping the words does not automatically keep their order.",
+        "objectiveId": "objective-1",
+        "sourceIds": ["web-1"],
+        "config": {
+          "kind": "evidence",
+          "briefing": "A bag of words keeps words without their relative order. Words alone can sometimes help predict what comes next, but keeping the words does not automatically keep their order.",
+          "modelNotes": "These fictional records illustrate the distinction in web-1 between saving word order and saving only words; they do not model the full attention architecture or use measured quantities. Press E to read and carry each card to a crate, retrieve mistakes, and stamp the complete arrangement; the bridge and lift are game rewards.",
+          "rounds": [
+            {
+              "id": "objective-1-case-1",
+              "title": "Moss's bridge.",
+              "prompt": "Read this fictional example: “1 cats, 2 nap” saves order, while a bag of words saves words without positions. Sort all three bird records by whether they save original order, then stamp; the crate descriptions offer help.",
+              "cards": [
+                {
+                  "id": "numbered-parcels",
+                  "label": "Numbered message.",
+                  "text": "Fictional illustration: a message records “1 birds, 2 carry, 3 parcels,” with each number marking the word's original position.",
+                  "sourceIds": ["web-1"],
+                  "explanation": "The positions tell you which word came first, second, and third. Unlike a bag of words, this record preserves the original order."
+                },
+                {
+                  "id": "inventory-parcels",
+                  "label": "Word inventory.",
+                  "text": "Fictional illustration: an inventory records birds, carry, and parcels once each, but saves no positions.",
+                  "sourceIds": ["web-1"],
+                  "explanation": "All the words remain, but their original positions are missing. This illustrates a bag of words, even though the inventory must display the words somewhere."
+                },
+                {
+                  "id": "path-parcels",
+                  "label": "Message path.",
+                  "text": "Fictional illustration: “birds → carry → parcels” uses arrows to record the message's original reading order.",
+                  "sourceIds": ["web-1"],
+                  "explanation": "The arrows preserve which word follows which. The representation therefore keeps the sequence, not just its words."
+                }
+              ],
+              "slots": [
+                {
+                  "id": "keeps-order",
+                  "label": "Order preserved.",
+                  "description": "Choose this crate when the record tells you the words' original positions or reading sequence.",
+                  "capacity": 3
+                },
+                {
+                  "id": "loses-order",
+                  "label": "Words only.",
+                  "description": "Choose this crate when the words remain but their original positions are not saved.",
+                  "capacity": 3
+                }
+              ],
+              "acceptedAssignments": [
+                ["keeps-order", "loses-order", "keeps-order"]
+              ],
+              "successFeedback": "You distinguished saved positions from words alone, which is the difference between a sequence and a bag of words. The bridge opens; cross to Bea.",
+              "failureFeedback": "Keeping every word does not automatically keep its order. Look for saved positions or reading directions, move any misplaced cards, and stamp again.",
+              "transfer": false
+            },
+            {
+              "id": "objective-1-case-2",
+              "title": "Bea's parcel platform.",
+              "prompt": "Sort the same message in new packaging: numbers mark original positions, a row saves no positions, and a strip records reading order. Saved original order—not neatness—decides the crate; read each card and the crate help, then stamp all three.",
+              "cards": [
+                {
+                  "id": "loose-tiles",
+                  "label": "Loose tiles.",
+                  "text": "Fictional illustration: loose tiles read “parcels [3], birds [1], carry [2].” Each number saves that word's original position, even when the tiles are scattered.",
+                  "sourceIds": ["web-1"],
+                  "explanation": "The saved numbers let you recover the original sequence despite the scattered display. Unlike a bag of words, this record retains relative order."
+                },
+                {
+                  "id": "tidy-row",
+                  "label": "Tidy row.",
+                  "text": "Fictional illustration: a tidy row displays “birds, carry, parcels.” It stores only the words; their original positions and reading order were discarded.",
+                  "sourceIds": ["web-1"],
+                  "explanation": "A neat display does not restore discarded order, even if it looks like a sentence. This record keeps only words, as a bag of words does."
+                },
+                {
+                  "id": "message-strip",
+                  "label": "Paper strip.",
+                  "text": "Fictional illustration: a strip reads “birds / carry / parcels.” Its left-to-right layout explicitly records the message's original reading sequence.",
+                  "sourceIds": ["web-1"],
+                  "explanation": "The strip saves which word follows which without needing numbers. It preserves relative order rather than keeping only the words."
+                }
+              ],
+              "slots": [
+                {
+                  "id": "keeps-order",
+                  "label": "Order preserved.",
+                  "description": "Choose this crate if saved numbers or a recorded reading sequence let you recover the original order.",
+                  "capacity": 3
+                },
+                {
+                  "id": "loses-order",
+                  "label": "Words only.",
+                  "description": "Choose this crate if original order was discarded, even when the displayed words look neatly arranged.",
+                  "capacity": 3
+                }
+              ],
+              "acceptedAssignments": [
+                ["keeps-order", "loses-order", "keeps-order"]
+              ],
+              "successFeedback": "Scattered words can retain order, while a tidy row can lose it: what the record saves matters. The platform rises; collect the parcel and return to Moss.",
+              "failureFeedback": "Appearance alone does not tell you whether original order survives. Read what the numbers and layouts actually record, move any misplaced cards, and stamp again.",
+              "transfer": true
+            }
+          ]
+        }
+      }
+    ],
+    "discoveries": [
+      {
+        "id": "workshop-sketch",
+        "title": "Words are not positions.",
+        "text": "The source distinguishes a sentence's word sequence from a bag of words, which omits relative order. Words alone can sometimes help predict the next word, but that does not mean order never matters.",
+        "sourceIds": ["web-1"]
+      },
+      {
+        "id": "cargo-manifest",
+        "title": "Packaging is not the rule.",
+        "text": "In these fictional records, original-position numbers preserve order even on scattered tiles, while a tidy display cannot restore discarded positions. This applies the source's word-order distinction, not the full attention architecture; the bridge and lift are game rewards.",
+        "sourceIds": ["web-1"]
+      }
+    ],
+    "assumptions": [
+      "Focus only on whether a representation preserves word order. Do not imply that order never matters or explain the full attention architecture.",
+      "These fictional records illustrate the distinction in web-1 between saving word order and saving only words; they do not model the full attention architecture or use measured quantities. Press E to read and carry each card to a crate, retrieve mistakes, and stamp the complete arrangement; the bridge and lift are game rewards.",
+      "This game uses a supplied source model and a fixed harbor scene. Scene machinery and characters are presentation, not evidence of the lesson's scientific or historical claims.",
+      "The recorded starting arrangement, attempts and hints describe this playthrough, not measured mastery."
+    ],
+    "scene": {
+      "kit": "harbor-route-v1",
+      "stations": {
+        "bridge": {
+          "kind": "evidence-crates",
+          "puzzleId": "source-lesson",
+          "taskId": "objective-1-case-1",
+          "title": "Moss's bridge.",
+          "itemLabel": "Message cards.",
+          "readouts": [],
+          "placementFeedback": "Read this fictional example: “1 cats, 2 nap” saves order, while a bag of words saves words without positions. Sort all three bird records by whether they save original order, then stamp; the crate descriptions offer help.",
+          "baselineFeedback": "Inspect the source-linked cards before arranging them. The starting layout has every card unassigned.",
+          "evidenceSummary": "A sentence presents words in order. A bag of words keeps the words without their relative order; this can sometimes still provide enough information to predict the next word.",
+          "successFeedback": "You distinguished saved positions from words alone, which is the difference between a sequence and a bag of words. The bridge opens; cross to Bea.",
+          "failureFeedback": "Keeping every word does not automatically keep its order. Look for saved positions or reading directions, move any misplaced cards, and stamp again.",
+          "activationLabel": "Check the arrangement",
+          "slotIds": ["keeps-order", "loses-order"],
+          "slotLabels": ["Order preserved.", "Words only."]
+        },
+        "lift": {
+          "kind": "evidence-crates",
+          "puzzleId": "source-lesson",
+          "taskId": "objective-1-case-2",
+          "title": "Bea's parcel platform.",
+          "itemLabel": "Repacked message cards.",
+          "readouts": [],
+          "placementFeedback": "Sort the same message in new packaging: numbers mark original positions, a row saves no positions, and a strip records reading order. Saved original order—not neatness—decides the crate; read each card and the crate help, then stamp all three.",
+          "baselineFeedback": "Inspect the source-linked cards before arranging them. The starting layout has every card unassigned.",
+          "evidenceSummary": "A sentence presents words in order. A bag of words keeps the words without their relative order; this can sometimes still provide enough information to predict the next word.",
+          "successFeedback": "Scattered words can retain order, while a tidy row can lose it: what the record saves matters. The platform rises; collect the parcel and return to Moss.",
+          "failureFeedback": "Appearance alone does not tell you whether original order survives. Read what the numbers and layouts actually record, move any misplaced cards, and stamp again.",
+          "activationLabel": "Check the arrangement",
+          "slotIds": ["keeps-order", "loses-order"],
+          "slotLabels": ["Order preserved.", "Words only."]
+        }
+      }
+    },
+    "story": {
+      "npcNames": {
+        "moss": "Moss",
+        "bea": "Bea"
+      },
+      "goals": {
+        "arrival": "Find Moss beside the first station and ask about the route.",
+        "bridge": "Read this fictional example: “1 cats, 2 nap” saves order, while a bag of words saves words without positions. Sort all three bird records by whether they save original order, then stamp; the crate descriptions offer help.",
+        "crossing": "Cross the opened bridge and meet Bea at the second station.",
+        "lift": "Sort the same message in new packaging: numbers mark original positions, a row saves no positions, and a strip records reading order. Saved original order—not neatness—decides the crate; read each card and the crate help, then stamp all three.",
+        "collect": "Collect the parcel from the raised platform.",
+        "return": "Carry the parcel back across the bridge to Moss.",
+        "complete": "Piper returns the parcel, and tomorrow's deliveries have their address labels at last. Moss can retire the plan to navigate by optimism."
+      },
+      "dialogue": {
+        "moss": {
+          "welcome": "Welcome, Piper! My address labels are in that parcel; without them, tomorrow's deliveries become a guessing game.",
+          "intro": "Read this fictional example: “1 cats, 2 nap” saves order, while a bag of words saves words without positions. Sort all three bird records by whether they save original order, then stamp; the crate descriptions offer help.",
+          "retry": "Keeping every word does not automatically keep its order. Look for saved positions or reading directions, move any misplaced cards, and stamp again.",
+          "ready": "That earns you an open bridge, Piper. Bea is across the water, keeping the parcel company. Cross the opened bridge and meet Bea at the second station.",
+          "parcel": "Good to see you, Piper! Bring the parcel here when you have it; tomorrow's route is waiting.",
+          "complete": "The labels are here! Tomorrow's parcels can travel by address rather than optimism.",
+          "blocked": "Meet Moss and open the first route before continuing."
+        },
+        "bea": {
+          "welcome": "Hello, Piper! I'd appreciate a conversation partner who isn't a box.",
+          "intro": "Sort the same message in new packaging: numbers mark original positions, a row saves no positions, and a strip records reading order. Saved original order—not neatness—decides the crate; read each card and the crate help, then stamp all three.",
+          "retry": "Appearance alone does not tell you whether original order survives. Read what the numbers and layouts actually record, move any misplaced cards, and stamp again.",
+          "ready": "The platform is up! Collect Moss's parcel and head back; those address labels have places to be. Collect the parcel from the raised platform.",
+          "parcel": "Welcome back! Remember, tidy words and saved order aren't necessarily the same thing.",
+          "complete": "Safe travels back to Moss! That parcel has had quite enough waterfront leisure.",
+          "blocked": "Meet Moss and open the first route before continuing."
+        }
+      },
+      "hints": {
+        "bridge": [
+          "Press E to read and carry a card, then place it in a crate.",
+          "Look for saved positions or a recorded reading sequence, not just familiar words.",
+          "In “1 cats, 2 nap,” numbers save order, so choose “Order preserved.” Look for similar evidence on your cards."
+        ],
+        "lift": [
+          "Press E to read a new card, especially its explanation of the numbers or layout.",
+          "Saved original order decides the crate; a neat display alone proves nothing.",
+          "For scattered “nap [2], cats [1],” original-position numbers still recover “cats nap.” Check whether Bea's tiles save the same kind of information."
+        ]
+      },
+      "discoveryReplies": {
+        "moss": {
+          "workshop-sketch": "A bag of words keeps words, not their order. Read my numbered example, then press E to pick up a card."
+        },
+        "bea": {
+          "cargo-manifest": "Same message, new packaging, Piper. Read what each record saves; neatness can be a convincing little disguise."
+        }
+      },
+      "postcards": [
+        {
+          "id": "harbor",
+          "title": "From the harbor",
+          "text": "A keepsake from the start of your route."
+        },
+        {
+          "id": "workshop",
+          "title": "A postcard for Bea",
+          "text": "This fictional postcard wishes Bea a pleasantly uneventful afternoon. Delivering it is optional."
+        },
+        {
+          "id": "lookout",
+          "title": "Across the water",
+          "text": "A keepsake from the far end of your route."
+        }
+      ],
+      "favor": {
+        "postcardId": "workshop",
+        "receiver": "bea",
+        "prompt": "I found a postcard for you.",
+        "thanks": "Thank you for the postcard, Piper! Friendly mail makes a fine change from parcel paperwork."
+      }
+    }
+  }
+}

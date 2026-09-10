@@ -118,8 +118,14 @@ describe("3D durable generation pipeline", () => {
     expect(validateGamePackage(job.game).errors).toEqual([]);
     expect(job.episode).toBeUndefined();
     expect(job.game?.episode.objectives).toHaveLength(1);
-    for (const method of [fake.plan, fake.mechanics, fake.story, fake.review])
+    for (const method of [fake.plan, fake.mechanics, fake.story, fake.review]) {
       expect(method).toHaveBeenCalledTimes(1);
+      expect(method).toHaveBeenCalledWith(
+        expect.objectContaining({
+          level: "Curious beginner (no prior knowledge)",
+        }),
+      );
+    }
     expect(fake.repairBundle).not.toHaveBeenCalled();
     const checkpoint = await readFile(
       join(directory, `${created.id}.json`),

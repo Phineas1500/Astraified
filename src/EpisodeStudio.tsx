@@ -13,9 +13,8 @@ import {
   MousePointer2,
 } from "lucide-react";
 import type { EpisodeJobView } from "../server/episode-jobs";
-import { TRANSFORMER_REFERENCE } from "./episodes/reference";
-import { EPISODES } from "./windpost/episodes";
 import { validateGamePackage } from "./games/schema";
+import { isFeaturedGame, studioGames } from "./games/catalog";
 import {
   gameIdentity,
   gameRevisionKey,
@@ -36,28 +35,32 @@ import {
 } from "./episodes/starter-source";
 import GamePlayer from "./games/Player";
 import { EpisodeArt } from "./episodes/EpisodeArt";
+import { GeneratorConnection } from "./games/GeneratorConnection";
+import { useGeneratorConnection } from "./games/useGeneratorConnection";
 import "./episodes/episodes.css";
 import "./games/studio.css";
 
 const JOB_KEY = "astraified:episodes:job:v1";
-const AUTHORED_GAMES: GamePackage[] = [
-  ...EPISODES.map((episode): GamePackage => ({
-    version: 1,
-    format: "3d",
-    episode,
-  })),
-  { version: 1, format: "point-and-click", episode: TRANSFORMER_REFERENCE },
-];
-function apiError(data: { error?: unknown }, fallback: string): string {
-  if (typeof data.error === "string") return data.error;
+function responseJob(data: Record<string, unknown>): EpisodeJobView {
+  const job = data.job as EpisodeJobView | undefined;
   if (
-    data.error &&
-    typeof data.error === "object" &&
-    "message" in data.error &&
-    typeof data.error.message === "string"
+    !job ||
+    typeof job.id !== "string" ||
+    !Array.isArray(job.warnings) ||
+    !job.usage ||
+    ![
+      "queued",
+      "running",
+      "ready",
+      "failed",
+      "cancelled",
+      "interrupted",
+    ].includes(job.status)
   )
-    return data.error.message;
-  return fallback;
+    throw new Error(
+      "The generator returned an unreadable progress update. Please check again.",
+    );
+  return job;
 }
 function readLibrary(): GamePackage[] {
   try {
@@ -106,7 +109,7 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
   const [sourceText, setSourceText] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [level, setLevel] = useState("High school / introductory college");
+  const [level, setLevel] = useState("Curious beginner (no prior knowledge)");
   const [topic, setTopic] = useState("");
   const [jobId, setJobId] = useState(savedJob);
   const [job, setJob] = useState<EpisodeJobView | null>(null);
@@ -114,6 +117,8 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
   const [error, setError] = useState("");
   const [savedError, setSavedError] = useState("");
   const [pollRetry, setPollRetry] = useState(0);
+  const connection = useGeneratorConnection();
+  const { request: generatorRequest, status: generatorStatus } = connection;
   const formRef = useRef<HTMLFormElement>(null);
   const addToLibrary = (game: GamePackage) => {
     const next = addGameToLibrary(libraryRef.current, game);
@@ -131,23 +136,18 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
     }
   };
   useEffect(() => {
-    if (!jobId) return;
+    if (!jobId || generatorStatus !== "online") return;
     let stopped = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const controller = new AbortController();
     async function poll() {
       try {
-        const response = await fetch(
+        const data = await generatorRequest(
           `/api/episodes/jobs/${encodeURIComponent(jobId!)}`,
           { signal: controller.signal },
         );
-        const data = await response.json();
-        if (!response.ok)
-          throw new Error(
-            apiError(data, "Could not read the adventure’s progress."),
-          );
         if (stopped) return;
-        const next = data.job as EpisodeJobView;
+        const next = responseJob(data);
         setJob(next);
         setError("");
         if (next.status === "ready") {
@@ -175,7 +175,7 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [jobId, pollRetry]);
+  }, [jobId, pollRetry, generatorStatus, generatorRequest]);
   function rememberJob(next: EpisodeJobView) {
     setJob(next);
     setJobId(next.id);
@@ -187,6 +187,7 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
   }
   async function generate(event: React.FormEvent) {
     event.preventDefault();
+    if (generatorStatus !== "online" || busy || (job && !terminal(job))) return;
     setError("");
     setBusy(true);
     const body = new FormData();
@@ -197,14 +198,12 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
     if (sourceMode === "url") body.set("sourceUrl", sourceUrl);
     if (sourceMode === "file" && file) body.set("file", file);
     try {
-      const response = await fetch("/api/episodes/jobs", {
-        method: "POST",
-        body,
-      });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(apiError(data, "Could not start your adventure."));
-      rememberJob(data.job);
+      const data = await generatorRequest(
+        "/api/episodes/jobs",
+        { method: "POST", body },
+        120_000,
+      );
+      rememberJob(responseJob(data));
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "Could not start your adventure.",
@@ -214,18 +213,15 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
     }
   }
   async function changeJob(action: "cancel" | "resume") {
-    if (!jobId) return;
+    if (!jobId || generatorStatus !== "online") return;
     setBusy(true);
     setError("");
     try {
-      const response = await fetch(
+      const data = await generatorRequest(
         `/api/episodes/jobs/${encodeURIComponent(jobId)}/${action}`,
         { method: "POST" },
       );
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(apiError(data, `Could not ${action} the adventure.`));
-      rememberJob(data.job);
+      rememberJob(responseJob(data));
     } catch (e) {
       setError(
         e instanceof Error ? e.message : "The request could not be completed.",
@@ -327,7 +323,7 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
             <span>3D exploration & point-and-click mysteries</span>
           </div>
           <div className="ep-case-list">
-            {[...library, ...AUTHORED_GAMES].map((game) => (
+            {studioGames(library).map((game) => (
               <article key={gameIdentity(game)} className="ep-case">
                 <button
                   className="ep-case-art"
@@ -356,7 +352,9 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                     {game.format === "3d" ? "3D exploration" : "Point & click"}
                   </span>
                   <span className="ep-case-kind">
-                    {isGeneratedGame(game)
+                    {isFeaturedGame(game)
+                      ? "Featured generated adventure"
+                      : isGeneratedGame(game)
                       ? "Generated from your source"
                       : "Authored adventure"}
                   </span>
@@ -389,6 +387,7 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
               understand. Choose how you want to play, then give your adventure
               something worth discovering.
             </p>
+            <GeneratorConnection connection={connection} />
             <fieldset className="ep-format-picker">
               <legend>How would you like to play?</legend>
               {(
@@ -426,14 +425,13 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                 </label>
               ))}
             </fieldset>
-            {format === "3d" && (
-              <p className="ep-small ep-format-note">
-                A focused idea becomes two connected challenges with a working
-                apparatus or evidence to sort. Your source shapes the lesson;
-                the island, characters, and movement come from the shared harbor
-                world.
-              </p>
-            )}
+            <p className="ep-small ep-format-note">
+              Start with the basics: short explanations, one thing to try at a
+              time, and a gentle follow-up to help it stick.{" "}
+              {format === "3d"
+                ? "Explore one idea in the shared harbor world."
+                : "Discover two small, connected ideas as you solve the mystery."}
+            </p>
             <div
               className="ep-source-tabs"
               role="tablist"
@@ -557,22 +555,23 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
               maxLength={300}
               placeholder="What would you most like to understand?"
             />
-            <label htmlFor="ep-level">Who is playing?</label>
+            <label htmlFor="ep-level">Your starting point</label>
             <select
               id="ep-level"
               value={level}
               onChange={(e) => setLevel(e.target.value)}
             >
+              <option>Curious beginner (no prior knowledge)</option>
               <option>High school / introductory college</option>
               <option>College level</option>
               <option>Curious beginner with basic algebra</option>
             </select>
             <p className="ep-small ep-source-disclosure">
-              Creating sends extracted text to OpenAI using your configured API
-              credits. A focused episode uses up to 24,000 source characters.
-              Generation can take several minutes; refreshing this page does not
-              cancel an accepted job. Completed stages are kept on this computer
-              so interrupted work can resume.{" "}
+              Creating sends extracted text to OpenAI using the host’s
+              configured API credits. A focused episode uses up to 24,000 source
+              characters. Generation can take several minutes; refreshing this
+              page does not cancel an accepted job. Completed stages are saved
+              by the generator so interrupted work can resume.{" "}
               {format === "3d"
                 ? "3D adventures share a harbor world"
                 : "Point-and-click adventures share the Bramble Bay art set"}
@@ -582,7 +581,9 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
             <button
               className="ep-primary ep-generate"
               type="submit"
-              disabled={busy || running || !sourceReady}
+              disabled={
+                busy || running || !sourceReady || generatorStatus !== "online"
+              }
             >
               {busy ? (
                 <LoaderCircle className="ep-spin" size={18} />
@@ -624,6 +625,13 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                           ? "This adventure needs another look."
                           : stageLabel[job.stage]}
                 </h2>
+                {running && generatorStatus !== "online" && (
+                  <p className="ep-small">
+                    {generatorStatus === "locked"
+                      ? "Unlock creation to check this adventure’s progress again."
+                      : "Progress updates are paused. We’ll check this adventure again when the workshop reconnects."}
+                  </p>
+                )}
                 <ol className="ep-job-stages">
                   {jobStages.map((stage, index) => {
                     const current = (jobStages as readonly string[]).indexOf(
@@ -693,7 +701,7 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                   {running && (
                     <button
                       className="ep-secondary"
-                      disabled={busy}
+                      disabled={busy || generatorStatus !== "online"}
                       onClick={() => changeJob("cancel")}
                     >
                       Stop generation
@@ -702,7 +710,7 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                   {job.resumable && (
                     <button
                       className="ep-primary"
-                      disabled={busy}
+                      disabled={busy || generatorStatus !== "online"}
                       onClick={() => changeJob("resume")}
                     >
                       Resume from saved work
@@ -750,7 +758,10 @@ export default function EpisodeStudio({ onBack }: { onBack: () => void }) {
                 {jobId && (
                   <button
                     className="ep-secondary"
-                    onClick={() => setPollRetry((n) => n + 1)}
+                    onClick={() => {
+                      setPollRetry((n) => n + 1);
+                      void connection.check();
+                    }}
                   >
                     Check progress again
                   </button>

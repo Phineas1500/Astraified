@@ -7,10 +7,24 @@ import { SourceError } from "./errors.js";
 import { extractSources, MAX_UPLOAD_BYTES } from "./sources.js";
 import { generateMission, MODEL } from "./generation.js";
 import { createEpisodeRouter, type EpisodeJobOptions } from "./episode-jobs.js";
+import {
+  createHostedAccess,
+  readHostedAccessConfig,
+  type HostedAccessEnvironment,
+} from "./hosted-access.js";
 
-export function createApp(options: { episodeJobs?: EpisodeJobOptions | false } = {}) {
+export function createApp(
+  options: {
+    episodeJobs?: EpisodeJobOptions | false;
+    hostedEnvironment?: HostedAccessEnvironment;
+  } = {},
+) {
+  const hostedConfig = readHostedAccessConfig(options.hostedEnvironment);
+  const hostedAccess = createHostedAccess(hostedConfig);
   const app = express();
   app.disable("x-powered-by");
+  app.use("/api/session", hostedAccess.sessionRouter);
+  app.use("/api", hostedAccess.protectApi);
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -30,10 +44,20 @@ export function createApp(options: { episodeJobs?: EpisodeJobOptions | false } =
     }),
   );
   if (options.episodeJobs !== false)
-    app.use("/api/episodes", createEpisodeRouter(options.episodeJobs));
+    app.use(
+      "/api/episodes",
+      createEpisodeRouter({
+        ...options.episodeJobs,
+        ...(hostedConfig.enabled
+          ? { webOrigins: hostedConfig.origins, requireOrigin: true }
+          : {}),
+      }),
+    );
   app.post(
     "/api/generate",
     (request, response, next) => {
+      // Hosted requests were authenticated and checked against exact origins above.
+      if (hostedConfig.enabled) return next();
       // This private demo's credit-bearing API is only for its local UI/CLI.
       const origin = request.headers.origin;
       if (origin) {
@@ -45,23 +69,19 @@ export function createApp(options: { episodeJobs?: EpisodeJobOptions | false } =
           )
             throw new Error();
         } catch {
-          response
-            .status(403)
-            .json({
-              error:
-                "Generation is available only from the local Astraified app.",
-              code: "invalid_origin",
-            });
+          response.status(403).json({
+            error:
+              "Generation is available only from the local Astraified app.",
+            code: "invalid_origin",
+          });
           return;
         }
       }
       if (request.headers["sec-fetch-site"] === "cross-site") {
-        response
-          .status(403)
-          .json({
-            error: "Open the local Astraified app to generate.",
-            code: "invalid_origin",
-          });
+        response.status(403).json({
+          error: "Open the local Astraified app to generate.",
+          code: "invalid_origin",
+        });
         return;
       }
       next();
@@ -147,20 +167,16 @@ export function createApp(options: { episodeJobs?: EpisodeJobOptions | false } =
         return;
       }
       if (error instanceof multer.MulterError) {
-        response
-          .status(413)
-          .json({
-            error: "Use one file under 10 MB and a focused source excerpt.",
-            code: "upload_limit",
-          });
+        response.status(413).json({
+          error: "Use one file under 10 MB and a focused source excerpt.",
+          code: "upload_limit",
+        });
         return;
       }
-      response
-        .status(500)
-        .json({
-          error: "The server could not complete this request. Please retry.",
-          code: "server_error",
-        });
+      response.status(500).json({
+        error: "The server could not complete this request. Please retry.",
+        code: "server_error",
+      });
     },
   );
   return app;

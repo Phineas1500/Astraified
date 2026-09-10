@@ -326,7 +326,7 @@
   font-weight: 800;
   margin: 22px 0 7px;
 }
-.ep-source-form input:not([type="file"]),
+.ep-source-form input:not([type="file"]):not([type="radio"]):not([type="checkbox"]),
 .ep-source-form textarea,
 .ep-source-form select {
   width: 100%;

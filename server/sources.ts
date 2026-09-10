@@ -6,6 +6,7 @@ import { extname } from "node:path";
 import { Readability } from "@mozilla/readability";
 import { JSDOM } from "jsdom";
 import { preserveMathText } from "./math-text.js";
+import { MAX_HTML_DOWNLOAD_BYTES, prepareSourceHtml } from "./html-source.js";
 import type { SourceRecord } from "../src/domain/types.js";
 import { SourceError } from "./errors.js";
 
@@ -153,16 +154,20 @@ async function fetchOnce(
           });
           return;
         }
-        const limit = contentType.includes("application/pdf")
-          ? MAX_UPLOAD_BYTES
-          : 2 * 1024 * 1024;
-        if (Number(response.headers["content-length"] || 0) > limit) {
-          request.destroy(
-            new SourceError(
-              413,
-              "This source is too large. Upload a smaller excerpt.",
-            ),
+        const mimeType = contentType.split(";", 1)[0].trim();
+        const limit =
+          mimeType === "application/pdf"
+            ? MAX_UPLOAD_BYTES
+            : mimeType === "text/html"
+              ? MAX_HTML_DOWNLOAD_BYTES
+              : 2 * 1024 * 1024;
+        const tooLarge = () =>
+          new SourceError(
+            413,
+            `This source exceeds the ${limit / (1024 * 1024)} MB download limit. Paste a focused excerpt or upload a smaller text document.`,
           );
+        if (Number(response.headers["content-length"] || 0) > limit) {
+          request.destroy(tooLarge());
           return;
         }
         if (
@@ -181,13 +186,7 @@ async function fetchOnce(
         let size = 0;
         response.on("data", (chunk: Buffer) => {
           size += chunk.length;
-          if (size > limit)
-            request.destroy(
-              new SourceError(
-                413,
-                "This source is too large. Upload a smaller excerpt.",
-              ),
-            );
+          if (size > limit) request.destroy(tooLarge());
           else chunks.push(chunk);
         });
         response.on("error", reject);
@@ -403,7 +402,7 @@ export async function extractSources(input: SourceInput, signal?: AbortSignal) {
       let text = fetched.body.toString("utf8");
       let title = new URL(fetched.url).hostname;
       if (fetched.contentType.includes("text/html")) {
-        const dom = new JSDOM(text, { url: fetched.url });
+        const dom = new JSDOM(prepareSourceHtml(text), { url: fetched.url });
         try {
           preserveMathText(dom.window.document);
           dom.window.document
@@ -416,6 +415,9 @@ export async function extractSources(input: SourceInput, signal?: AbortSignal) {
         } finally {
           dom.window.close();
         }
+        warnings.push(
+          "Webpages are read as text. Embedded images and diagrams are not interpreted.",
+        );
       }
       if (text.length > MAX_SOURCE_CHARS)
         warnings.push(

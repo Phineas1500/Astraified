@@ -1,0 +1,725 @@
+{
+  "version": 1,
+  "format": "3d",
+  "episode": {
+    "version": 1,
+    "generated": true,
+    "level": "High school / introductory college",
+    "generation": {
+      "model": "gpt-6-astra",
+      "createdAt": "2026-09-10T19:32:27.201Z",
+      "review": {
+        "status": "passed",
+        "summary": "Model content review passed for the single objective, both simulation stations, and the harbor story. The supplied quotations support the attention distinction, and the formulas, illustrative values, targets, and reference settings are conceptually consistent. The transfer case changes the keys and requires a different value pair. Controls and visible targets support reasoning, and the fictional machinery is clearly separated from Transformer claims. This is not empirical learning validation or teacher certification."
+      }
+    },
+    "id": "generated-3b15da86-7815-475d-b9d6-5ffe50d425d3",
+    "revision": 1,
+    "title": "Special Delivery, Weighted Carefully",
+    "subtitle": "One bird, two attention experiments, and a parcel worth fetching.",
+    "description": "Piper explores a small harbor, comparing attention weights with the output they produce. Two numerical experiments earn passage across a bridge and access to a parcel platform. All numbers are illustrative—not learned language embeddings.",
+    "briefing": "Moss needs a parcel waiting across the harbor, and Piper has the wings—and the delivery responsibility. Help Piper complete Moss's attention experiment to open the bridge, then try Bea's changed case to raise the parcel platform. Carry one sample token between value-pair docks and use the query dial to compare visible weights and output. Collect the parcel and return it to Moss. The harbor machinery is a fictional reward for applying the model, not a demonstration of how Transformers operate machinery.",
+    "ending": "Piper returns the parcel to Moss, who holds it as though the harbor has finally kept a promise. “Thank you. Bea packed it; you brought it. Excellent division of labor.” The delivery is complete, with one useful distinction explored: queries and keys determine the attention weights, while values supply the weighted mixture.",
+    "sources": [
+      {
+        "id": "text-1",
+        "title": "Your pasted material · excerpt 1",
+        "text": "Editorial learning notes about the original Transformer architecture, based on Vaswani et al., Attention Is All You Need, sections 3.1–3.5: https://arxiv.org/html/1706.03762v7\r\n\r\nToken identity and sequence order\r\nThe model represents tokens using learned embedding vectors. In the original architecture, positional encodings are added to those embeddings to provide information about sequence order. The same token can have the same initial embedding at two locations while the added positional information differs. Numerical changes do not by themselves prove understanding. These notes describe an illustrative small model; real embedding coordinates do not have assigned human-readable meanings.\r\n\r\nScaled dot-product attention\r\nQueries and keys determine comparison scores. Divide their dot products by the square root of the key dimension, then apply softmax to get weights. Multiply those weights by the value vectors and sum the contributions. The result is a weighted mixture of values rather than simply selecting the strongest key. Holding queries and keys fixed while changing values leaves the attention weights fixed but can change the output mixture. Q, K and V in a model come from learned projections of representations; a small demonstration can provide explicit illustrative vectors without claiming that they were trained on language.\r\n\r\nCausal masking in decoder self-attention\r\nThe original decoder's self-attention restricts each input position to itself and earlier input positions. The prediction target is shifted: that current input helps predict the next token. Future input positions are masked before softmax, receiving zero attention weight. Changing later inputs must not change an earlier position's output under this causal mask. Blocking everything is not a valid repair because a row still needs permitted context. Encoder self-attention does not use this same causal restriction. This is a demonstration of selected computations, not a whole trained language model; full Transformer blocks also include other components such as feed-forward layers, residual connections and normalization."
+      }
+    ],
+    "objectives": [
+      {
+        "id": "attention-roles",
+        "title": "Distinguish attention weights from the weighted output",
+        "sourceIds": ["text-1"],
+        "claim": "Queries and keys determine attention weights through scaled dot products and softmax; those weights combine value vectors into an output. Holding queries and keys fixed while changing values preserves the weights but can change the output.",
+        "boundaries": "Focus on one scaled dot-product attention computation, not a full Transformer or trained language model. All numerical vectors are illustrative, not learned language embeddings; coordinates have no assigned human-readable meanings. Exclude positional encoding and causal masking.",
+        "misconception": "Attention simply returns the value associated with the strongest key, so unchanged weights imply an unchanged output.",
+        "evidence": [
+          {
+            "sourceId": "text-1",
+            "quote": "Queries and keys determine comparison scores. Divide their dot products by the square root of the key dimension, then apply softmax to get weights. Multiply those weights by the value vectors and sum the contributions."
+          },
+          {
+            "sourceId": "text-1",
+            "quote": "The result is a weighted mixture of values rather than simply selecting the strongest key. Holding queries and keys fixed while changing values leaves the attention weights fixed but can change the output mixture."
+          },
+          {
+            "sourceId": "text-1",
+            "quote": "Q, K and V in a model come from learned projections of representations; a small demonstration can provide explicit illustrative vectors without claiming that they were trained on language."
+          }
+        ]
+      }
+    ],
+    "puzzles": [
+      {
+        "id": "source-lesson",
+        "title": "Distinguish attention weights from the weighted output",
+        "instructions": "Help bird courier Moss open the harbor bridge, then meet Bea to raise the parcel platform. Collect the parcel and return it to Moss. Explore how attention weights differ from the output they produce. Every numerical vector here is illustrative—not a learned language embedding.",
+        "objectiveId": "attention-roles",
+        "sourceIds": ["text-1"],
+        "config": {
+          "kind": "simulation",
+          "briefing": "Help bird courier Moss open the harbor bridge, then meet Bea to raise the parcel platform. Collect the parcel and return it to Moss. Explore how attention weights differ from the output they produce. Every numerical vector here is illustrative—not a learned language embedding.",
+          "modelNotes": "Objective: attention-roles. Approach: simulation. Source: text-1. This models one query attending to two keys, with scalar values. Scores are q·k/√d, weights are softmax(scores), and output = wA·vA + wB·vB using fractional weights. Here d = 1; all vector coordinates and outputs are dimensionless, and weights are displayed as percentages. The sample docks supply illustrative value pairs; the dial supplies an illustrative query. Keys are fixed within each case. Changing values alone cannot change the weights. Coordinates have no assigned human-readable meanings. The harbor mechanisms are fictional rewards, not parts of a Transformer. Learned projections, positional encoding, masking, and full Transformer blocks are outside this demonstration.",
+          "controls": [
+            {
+              "id": "sample",
+              "label": "Value-pair dock — carry one sample token to a dock",
+              "kind": "choice",
+              "options": [
+                {
+                  "label": "Illustrative values: vA = 0, vB = 8",
+                  "value": 0
+                },
+                {
+                  "label": "Illustrative values: vA = 8, vB = 0",
+                  "value": 1
+                },
+                {
+                  "label": "Illustrative values: vA = 2, vB = 6",
+                  "value": 2
+                }
+              ]
+            },
+            {
+              "id": "query",
+              "label": "Query dial — illustrative scalar q",
+              "kind": "choice",
+              "options": [
+                {
+                  "label": "q = −1",
+                  "value": -1
+                },
+                {
+                  "label": "q = 0",
+                  "value": 0
+                },
+                {
+                  "label": "q = +1",
+                  "value": 1
+                }
+              ]
+            }
+          ],
+          "outputs": [
+            {
+              "id": "weightA",
+              "label": "Attention weight on A",
+              "unit": "%",
+              "expression": [
+                {
+                  "op": "ref",
+                  "id": "query"
+                },
+                {
+                  "op": "ref",
+                  "id": "keyA"
+                },
+                {
+                  "op": "mul"
+                },
+                {
+                  "op": "ref",
+                  "id": "dimension"
+                },
+                {
+                  "op": "sqrt"
+                },
+                {
+                  "op": "div"
+                },
+                {
+                  "op": "exp"
+                },
+                {
+                  "op": "ref",
+                  "id": "query"
+                },
+                {
+                  "op": "ref",
+                  "id": "keyA"
+                },
+                {
+                  "op": "mul"
+                },
+                {
+                  "op": "ref",
+                  "id": "dimension"
+                },
+                {
+                  "op": "sqrt"
+                },
+                {
+                  "op": "div"
+                },
+                {
+                  "op": "exp"
+                },
+                {
+                  "op": "ref",
+                  "id": "query"
+                },
+                {
+                  "op": "ref",
+                  "id": "keyB"
+                },
+                {
+                  "op": "mul"
+                },
+                {
+                  "op": "ref",
+                  "id": "dimension"
+                },
+                {
+                  "op": "sqrt"
+                },
+                {
+                  "op": "div"
+                },
+                {
+                  "op": "exp"
+                },
+                {
+                  "op": "add"
+                },
+                {
+                  "op": "div"
+                },
+                {
+                  "op": "literal",
+                  "value": 100
+                },
+                {
+                  "op": "mul"
+                }
+              ],
+              "derivativeWrt": null
+            },
+            {
+              "id": "weightB",
+              "label": "Attention weight on B",
+              "unit": "%",
+              "expression": [
+                {
+                  "op": "literal",
+                  "value": 100
+                },
+                {
+                  "op": "ref",
+                  "id": "weightA"
+                },
+                {
+                  "op": "sub"
+                }
+              ],
+              "derivativeWrt": null
+            },
+            {
+              "id": "mixture",
+              "label": "Illustrative weighted output",
+              "unit": "dimensionless",
+              "expression": [
+                {
+                  "op": "ref",
+                  "id": "sample"
+                },
+                {
+                  "op": "literal",
+                  "value": 0
+                },
+                {
+                  "op": "eq"
+                },
+                {
+                  "op": "literal",
+                  "value": 0
+                },
+                {
+                  "op": "ref",
+                  "id": "sample"
+                },
+                {
+                  "op": "literal",
+                  "value": 1
+                },
+                {
+                  "op": "eq"
+                },
+                {
+                  "op": "literal",
+                  "value": 8
+                },
+                {
+                  "op": "literal",
+                  "value": 2
+                },
+                {
+                  "op": "if"
+                },
+                {
+                  "op": "if"
+                },
+                {
+                  "op": "ref",
+                  "id": "weightA"
+                },
+                {
+                  "op": "mul"
+                },
+                {
+                  "op": "ref",
+                  "id": "sample"
+                },
+                {
+                  "op": "literal",
+                  "value": 0
+                },
+                {
+                  "op": "eq"
+                },
+                {
+                  "op": "literal",
+                  "value": 8
+                },
+                {
+                  "op": "ref",
+                  "id": "sample"
+                },
+                {
+                  "op": "literal",
+                  "value": 1
+                },
+                {
+                  "op": "eq"
+                },
+                {
+                  "op": "literal",
+                  "value": 0
+                },
+                {
+                  "op": "literal",
+                  "value": 6
+                },
+                {
+                  "op": "if"
+                },
+                {
+                  "op": "if"
+                },
+                {
+                  "op": "ref",
+                  "id": "weightB"
+                },
+                {
+                  "op": "mul"
+                },
+                {
+                  "op": "add"
+                },
+                {
+                  "op": "literal",
+                  "value": 100
+                },
+                {
+                  "op": "div"
+                }
+              ],
+              "derivativeWrt": null
+            }
+          ],
+          "plots": [],
+          "tasks": [
+            {
+              "id": "attention-roles-bridge",
+              "title": "Moss: change the mixture, preserve the weights",
+              "prompt": "Illustrative setup: kA = +1, kB = −1, d = 1. Open the bridge with A's weight between 85% and 90% and the weighted output between 6.8 and 7.3. Read the starting weights and output. Carry the single sample token to another value-pair dock, then compare readings before activating. The query dial is available, but changing values alone preserves weights. Hint: multiply each value by its fractional weight, then add; the strongest key does not simply return its value.",
+              "constants": [
+                {
+                  "id": "keyA",
+                  "value": 1
+                },
+                {
+                  "id": "keyB",
+                  "value": -1
+                },
+                {
+                  "id": "dimension",
+                  "value": 1
+                }
+              ],
+              "initialInputs": [
+                {
+                  "id": "sample",
+                  "value": 0
+                },
+                {
+                  "id": "query",
+                  "value": 1
+                }
+              ],
+              "referenceInputs": [
+                {
+                  "id": "sample",
+                  "value": 1
+                },
+                {
+                  "id": "query",
+                  "value": 1
+                }
+              ],
+              "goal": [
+                {
+                  "op": "ref",
+                  "id": "weightA"
+                },
+                {
+                  "op": "literal",
+                  "value": 85
+                },
+                {
+                  "op": "gte"
+                },
+                {
+                  "op": "ref",
+                  "id": "weightA"
+                },
+                {
+                  "op": "literal",
+                  "value": 90
+                },
+                {
+                  "op": "lte"
+                },
+                {
+                  "op": "and"
+                },
+                {
+                  "op": "ref",
+                  "id": "mixture"
+                },
+                {
+                  "op": "literal",
+                  "value": 6.8
+                },
+                {
+                  "op": "gte"
+                },
+                {
+                  "op": "and"
+                },
+                {
+                  "op": "ref",
+                  "id": "mixture"
+                },
+                {
+                  "op": "literal",
+                  "value": 7.3
+                },
+                {
+                  "op": "lte"
+                },
+                {
+                  "op": "and"
+                }
+              ],
+              "successFeedback": "Bridge open! A still receives about 88.1% of the attention, but changing the values raises the output to about 7.05. It is not 8: B's nonzero weight also contributes. Queries and keys set the weights; values supply what gets mixed.",
+              "failureFeedback": "Check both target ranges. If A's weight is outside its range, explore the query dial. If the weight is suitable but the output is not, compare the value pairs while leaving the query unchanged. Use percentages divided by 100 in the weighted sum.",
+              "transfer": false
+            },
+            {
+              "id": "attention-roles-platform",
+              "title": "Bea: apply the distinction after the keys change",
+              "prompt": "Across the bridge, Bea's illustrative setup has kA = −1, kB = +1, d = 1. Raise the parcel platform with B's weight between 85% and 90% and the weighted output between 5.3 and 5.7. Compare the new starting readings with Moss's case. Predict which value pair can meet the output range without disturbing suitable weights, move the single token, and check your prediction. Activate when both targets are met, then collect the parcel and return to Moss.",
+              "constants": [
+                {
+                  "id": "keyA",
+                  "value": -1
+                },
+                {
+                  "id": "keyB",
+                  "value": 1
+                },
+                {
+                  "id": "dimension",
+                  "value": 1
+                }
+              ],
+              "initialInputs": [
+                {
+                  "id": "sample",
+                  "value": 1
+                },
+                {
+                  "id": "query",
+                  "value": 1
+                }
+              ],
+              "referenceInputs": [
+                {
+                  "id": "sample",
+                  "value": 2
+                },
+                {
+                  "id": "query",
+                  "value": 1
+                }
+              ],
+              "goal": [
+                {
+                  "op": "ref",
+                  "id": "weightB"
+                },
+                {
+                  "op": "literal",
+                  "value": 85
+                },
+                {
+                  "op": "gte"
+                },
+                {
+                  "op": "ref",
+                  "id": "weightB"
+                },
+                {
+                  "op": "literal",
+                  "value": 90
+                },
+                {
+                  "op": "lte"
+                },
+                {
+                  "op": "and"
+                },
+                {
+                  "op": "ref",
+                  "id": "mixture"
+                },
+                {
+                  "op": "literal",
+                  "value": 5.3
+                },
+                {
+                  "op": "gte"
+                },
+                {
+                  "op": "and"
+                },
+                {
+                  "op": "ref",
+                  "id": "mixture"
+                },
+                {
+                  "op": "literal",
+                  "value": 5.7
+                },
+                {
+                  "op": "lte"
+                },
+                {
+                  "op": "and"
+                }
+              ],
+              "successFeedback": "Platform raised! Reversing the keys made B receive about 88.1% of the attention at the same query. The successful mixture is about 5.52, not the strongest key's value of 6. Changing values preserved this case's weights while changing its output.",
+              "failureFeedback": "The keys have changed, so check which weight is larger rather than reusing the bridge's conclusion. Once B's weight is in range, estimate each dock's weighted mixture. Both values contribute; matching only the strongest key's value is not enough.",
+              "transfer": true
+            }
+          ]
+        }
+      }
+    ],
+    "discoveries": [
+      {
+        "id": "workshop-sketch",
+        "title": "Weights Are Not the Output",
+        "text": "In scaled dot-product attention, queries and keys produce scores q·k/√d; softmax turns those scores into weights. Those weights multiply the values, and the contributions are summed. Here, d = 1 and output = wA·vA + wB·vB, using fractional weights. Holding queries and keys fixed preserves the weights when values change, but the output can change. This is a weighted mixture, not simply the value belonging to the strongest key. Source: text-1. All numbers are illustrative—not learned language embeddings.",
+        "sourceIds": ["text-1"]
+      },
+      {
+        "id": "cargo-manifest",
+        "title": "Changed Keys, Same Rule",
+        "text": "This case reverses the illustrative keys: kA = −1 and kB = +1. At q = +1, B now receives about 88.1% of the attention. Changing values alone still preserves those weights while potentially changing the output. In a model, Q, K and V come from learned projections of representations; this small experiment uses explicit illustrative vectors instead. Their coordinates have no assigned human-readable meanings. It demonstrates one attention computation, not a full Transformer or trained language model. Source: text-1.",
+        "sourceIds": ["text-1"]
+      }
+    ],
+    "assumptions": [
+      "Focus on one scaled dot-product attention computation, not a full Transformer or trained language model. All numerical vectors are illustrative, not learned language embeddings; coordinates have no assigned human-readable meanings. Exclude positional encoding and causal masking.",
+      "Objective: attention-roles. Approach: simulation. Source: text-1. This models one query attending to two keys, with scalar values. Scores are q·k/√d, weights are softmax(scores), and output = wA·vA + wB·vB using fractional weights. Here d = 1; all vector coordinates and outputs are dimensionless, and weights are displayed as percentages. The sample docks supply illustrative value pairs; the dial supplies an illustrative query. Keys are fixed within each case. Changing values alone cannot change the weights. Coordinates have no assigned human-readable meanings. The harbor mechanisms are fictional rewards, not parts of a Transformer. Learned projections, positional encoding, masking, and full Transformer blocks are outside this demonstration.",
+      "This game uses a supplied source model and a fixed harbor scene. Scene machinery and characters are presentation, not evidence of the lesson's scientific or historical claims.",
+      "The recorded starting arrangement, attempts and hints describe this playthrough, not measured mastery."
+    ],
+    "scene": {
+      "kit": "harbor-route-v1",
+      "stations": {
+        "bridge": {
+          "kind": "experiment",
+          "puzzleId": "source-lesson",
+          "taskId": "attention-roles-bridge",
+          "title": "Moss's Bridge: Same Weights, Different Mixture",
+          "itemLabel": "Value-pair sample token",
+          "socketInput": "sample",
+          "socketValues": [0, 1, 2],
+          "socketLabels": [
+            "Illustrative values: vA = 0, vB = 8",
+            "Illustrative values: vA = 8, vB = 0",
+            "Illustrative values: vA = 2, vB = 6"
+          ],
+          "prediction": {
+            "inputId": "query",
+            "values": [-1, 0, 1],
+            "unit": "value"
+          },
+          "readouts": [
+            {
+              "id": "weightA",
+              "label": "Attention weight on A",
+              "unit": "%",
+              "kind": "output"
+            },
+            {
+              "id": "weightB",
+              "label": "Attention weight on B",
+              "unit": "%",
+              "kind": "output"
+            },
+            {
+              "id": "mixture",
+              "label": "Illustrative weighted output",
+              "unit": "dimensionless",
+              "kind": "output"
+            }
+          ],
+          "placementFeedback": "Illustrative setup: kA = +1, kB = −1, d = 1. Open the bridge with A's weight between 85% and 90% and the weighted output between 6.8 and 7.3. Read the starting weights and output. Carry the single sample token to another value-pair dock, then compare readings before activating. The query dial is available, but changing values alone preserves weights. Hint: multiply each value by its fractional weight, then add; the strongest key does not simply return its value.",
+          "baselineFeedback": "Observe the apparatus's starting readings before placing the token or adjusting its dial.",
+          "evidenceSummary": "Queries and keys determine attention weights through scaled dot products and softmax; those weights combine value vectors into an output. Holding queries and keys fixed while changing values preserves the weights but can change the output.",
+          "successFeedback": "Bridge open! A still receives about 88.1% of the attention, but changing the values raises the output to about 7.05. It is not 8: B's nonzero weight also contributes. Queries and keys set the weights; values supply what gets mixed.",
+          "failureFeedback": "Check both target ranges. If A's weight is outside its range, explore the query dial. If the weight is suitable but the output is not, compare the value pairs while leaving the query unchanged. Use percentages divided by 100 in the weighted sum.",
+          "activationLabel": "Test the experiment"
+        },
+        "lift": {
+          "kind": "experiment",
+          "puzzleId": "source-lesson",
+          "taskId": "attention-roles-platform",
+          "title": "Bea's Platform: A New Balance",
+          "itemLabel": "Value-pair sample token",
+          "socketInput": "sample",
+          "socketValues": [0, 1, 2],
+          "socketLabels": [
+            "Illustrative values: vA = 0, vB = 8",
+            "Illustrative values: vA = 8, vB = 0",
+            "Illustrative values: vA = 2, vB = 6"
+          ],
+          "prediction": {
+            "inputId": "query",
+            "values": [-1, 0, 1],
+            "unit": "value"
+          },
+          "readouts": [
+            {
+              "id": "weightA",
+              "label": "Attention weight on A",
+              "unit": "%",
+              "kind": "output"
+            },
+            {
+              "id": "weightB",
+              "label": "Attention weight on B",
+              "unit": "%",
+              "kind": "output"
+            },
+            {
+              "id": "mixture",
+              "label": "Illustrative weighted output",
+              "unit": "dimensionless",
+              "kind": "output"
+            }
+          ],
+          "placementFeedback": "Across the bridge, Bea's illustrative setup has kA = −1, kB = +1, d = 1. Raise the parcel platform with B's weight between 85% and 90% and the weighted output between 5.3 and 5.7. Compare the new starting readings with Moss's case. Predict which value pair can meet the output range without disturbing suitable weights, move the single token, and check your prediction. Activate when both targets are met, then collect the parcel and return to Moss.",
+          "baselineFeedback": "Observe the apparatus's starting readings before placing the token or adjusting its dial.",
+          "evidenceSummary": "Queries and keys determine attention weights through scaled dot products and softmax; those weights combine value vectors into an output. Holding queries and keys fixed while changing values preserves the weights but can change the output.",
+          "successFeedback": "Platform raised! Reversing the keys made B receive about 88.1% of the attention at the same query. The successful mixture is about 5.52, not the strongest key's value of 6. Changing values preserved this case's weights while changing its output.",
+          "failureFeedback": "The keys have changed, so check which weight is larger rather than reusing the bridge's conclusion. Once B's weight is in range, estimate each dock's weighted mixture. Both values contribute; matching only the strongest key's value is not enough.",
+          "activationLabel": "Test the experiment"
+        }
+      }
+    },
+    "story": {
+      "npcNames": {
+        "moss": "Moss",
+        "bea": "Bea"
+      },
+      "goals": {
+        "arrival": "Find Moss beside the first station and ask about the route.",
+        "bridge": "Illustrative setup: kA = +1, kB = −1, d = 1. Open the bridge with A's weight between 85% and 90% and the weighted output between 6.8 and 7.3. Read the starting weights and output. Carry the single sample token to another value-pair dock, then compare readings before activating. The query dial is available, but changing values alone preserves weights. Hint: multiply each value by its fractional weight, then add; the strongest key does not simply return its value.",
+        "crossing": "Cross the opened bridge and meet Bea at the second station.",
+        "lift": "Across the bridge, Bea's illustrative setup has kA = −1, kB = +1, d = 1. Raise the parcel platform with B's weight between 85% and 90% and the weighted output between 5.3 and 5.7. Compare the new starting readings with Moss's case. Predict which value pair can meet the output range without disturbing suitable weights, move the single token, and check your prediction. Activate when both targets are met, then collect the parcel and return to Moss.",
+        "collect": "Collect the parcel from the raised platform.",
+        "return": "Carry the parcel back across the bridge to Moss.",
+        "complete": "Piper returns the parcel to Moss, who holds it as though the harbor has finally kept a promise. “Thank you. Bea packed it; you brought it. Excellent division of labor.” The delivery is complete, with one useful distinction explored: queries and keys determine the attention weights, while values supply the weighted mixture."
+      },
+      "dialogue": {
+        "moss": {
+          "welcome": "“Hello, Piper. One parcel, one bridge, and a small exercise in paying attention.”",
+          "intro": "Illustrative setup: kA = +1, kB = −1, d = 1. Open the bridge with A's weight between 85% and 90% and the weighted output between 6.8 and 7.3. Read the starting weights and output. Carry the single sample token to another value-pair dock, then compare readings before activating. The query dial is available, but changing values alone preserves weights. Hint: multiply each value by its fractional weight, then add; the strongest key does not simply return its value.",
+          "retry": "Check both target ranges. If A's weight is outside its range, explore the query dial. If the weight is suitable but the output is not, compare the value pairs while leaving the query unchanged. Use percentages divided by 100 in the weighted sum.",
+          "ready": "The bridge opens, and Moss gives Piper an appreciative nod. “Same weights, different mixture. Now that's a change with somewhere to go.” Cross the opened bridge and meet Bea at the second station.",
+          "parcel": "“Back already? If you have the parcel, you've improved my afternoon considerably.”",
+          "complete": "“Delivered safely. Bea will be pleased—and I'll finally stop looking across the water.”",
+          "blocked": "Meet Moss and open the first route before continuing."
+        },
+        "bea": {
+          "welcome": "“Welcome, Piper. Moss sent a courier with feathers. Sensible harbor planning.”",
+          "intro": "Across the bridge, Bea's illustrative setup has kA = −1, kB = +1, d = 1. Raise the parcel platform with B's weight between 85% and 90% and the weighted output between 5.3 and 5.7. Compare the new starting readings with Moss's case. Predict which value pair can meet the output range without disturbing suitable weights, move the single token, and check your prediction. Activate when both targets are met, then collect the parcel and return to Moss.",
+          "retry": "The keys have changed, so check which weight is larger rather than reusing the bridge's conclusion. Once B's weight is in range, estimate each dock's weighted mixture. Both values contribute; matching only the strongest key's value is not enough.",
+          "ready": "The parcel platform rises. “Nicely checked,” says Bea. “There's the parcel. Please take it to Moss before he starts composing another polite inquiry.” Collect the parcel from the raised platform.",
+          "parcel": "“Still here? Check the readings if you need to; the parcel isn't going anywhere without you.”",
+          "complete": "“Safe trip back. Tell Moss his parcel has officially ended its holiday.”",
+          "blocked": "Meet Moss and open the first route before continuing."
+        }
+      },
+      "hints": {
+        "bridge": [
+          "Read the starting weights and output before moving the single token. Compare what changes when only the value pair changes.",
+          "The target is A's weight between 85% and 90%, with output between 6.8 and 7.3. If A's weight already fits, leave the query dial unchanged and try another dock.",
+          "Use q = +1 and the dock with vA = 8, vB = 0. A's weight is about 88.1%; using fractional weights gives an output of about 7.05, not 8. These numbers are illustrative."
+        ],
+        "lift": [
+          "Compare these starting readings with Moss's case. The keys have changed; don't assume A still receives the larger weight.",
+          "The target is B's weight between 85% and 90%, with output between 5.3 and 5.7. Once B's weight fits, changing only the value pair will preserve it.",
+          "Use q = +1 and the dock with vA = 2, vB = 6. The illustrative mixture is approximately 0.119 × 2 + 0.881 × 6 = 5.52. Both values contribute; the output is not simply 6."
+        ]
+      },
+      "discoveryReplies": {
+        "moss": {
+          "workshop-sketch": "Moss greets Piper beside the bridge. “My parcel is over there, enjoying a very long holiday. Try the experiment here, and we'll get you across.”"
+        },
+        "bea": {
+          "cargo-manifest": "Across the bridge, Bea waits near the parcel platform. “Moss's parcel is ready. The keys in this experiment are reversed, so give the readings a fresh look before borrowing your last answer.”"
+        }
+      },
+      "postcards": [
+        {
+          "id": "harbor",
+          "title": "From the harbor",
+          "text": "A keepsake from the start of your route."
+        },
+        {
+          "id": "workshop",
+          "title": "A postcard for Bea",
+          "text": "For Bea: Wish you were here. Since you are here, please enjoy this unusually efficient postcard."
+        },
+        {
+          "id": "lookout",
+          "title": "Across the water",
+          "text": "A keepsake from the far end of your route."
+        }
+      ],
+      "favor": {
+        "postcardId": "workshop",
+        "receiver": "bea",
+        "prompt": "I found a postcard for you.",
+        "thanks": "“That postcard was meant for me! Thanks, Piper. A little kindness, delivered separately.”"
+      }
+    }
+  }
+}

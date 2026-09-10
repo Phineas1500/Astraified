@@ -8,3 +8,4 @@ dist/
 tools/
 artifacts/
 .astraified/
+.vercel/

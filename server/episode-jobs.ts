@@ -134,8 +134,10 @@ interface StoredJob extends Omit<EpisodeJobView, "resumable" | "learningPlan"> {
 }
 export interface EpisodeJobOptions {
   directory?: string;
-  /** Exact local frontend origins when a dev proxy rewrites the API Host. */
+  /** Exact frontend origins when a proxy rewrites the API Host. */
   webOrigins?: string[];
+  /** Hosted sessions require an explicit approved Origin on every mutation. */
+  requireOrigin?: boolean;
   provider?: EpisodeProvider;
   extract?: typeof extractSources;
   getApiKey?: () => string | undefined;
@@ -374,7 +376,11 @@ export class EpisodeJobService {
   private reviewTimeout: number;
 
   constructor(options: EpisodeJobOptions = {}) {
-    this.directory = resolve(options.directory || ".astraified/jobs");
+    this.directory = resolve(
+      options.directory ||
+        process.env.ASTRAIFIED_JOB_DIRECTORY ||
+        ".astraified/jobs",
+    );
     this.provider = options.provider || defaultEpisodeProvider;
     this.defaultPipeline =
       options.generalProvider ||
@@ -569,7 +575,12 @@ export class EpisodeJobService {
             ? "A focused lesson from the supplied source"
             : "Transformer neural networks")
         ).slice(0, 300),
-        level: (input.level || "High school / college").slice(0, 100),
+        level: (
+          input.level ||
+          (pipeline === "legacy"
+            ? "High school / college"
+            : "Curious beginner (no prior knowledge)")
+        ).slice(0, 100),
         sources: extracted.sources,
         warnings: [
           ...extracted.warnings,
@@ -1422,6 +1433,7 @@ const DEFAULT_WEB_ORIGINS = ["http://127.0.0.1:5173", "http://localhost:5173"];
 
 export function createEpisodeWriteGuard(
   webOrigins = DEFAULT_WEB_ORIGINS,
+  requireOrigin = false,
 ): express.RequestHandler {
   const allowed = new Set(webOrigins);
   return (request, response, next) => {
@@ -1429,18 +1441,29 @@ export function createEpisodeWriteGuard(
       return response.status(403).json({
         error: {
           code: "invalid_origin",
-          message: "Open the local Astraified app to change generation jobs.",
+          message: "Open the Astraified app to change generation jobs.",
         },
       });
     const origin = request.headers.origin;
+    if (requireOrigin && !origin)
+      return response.status(403).json({
+        error: {
+          code: "invalid_origin",
+          message: "Generation jobs require the configured Astraified website.",
+        },
+      });
     if (origin) {
       try {
         const parsed = new URL(origin);
         if (
           !["http:", "https:"].includes(parsed.protocol) ||
-          !["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname) ||
           parsed.origin !== origin ||
-          (parsed.host !== request.headers.host && !allowed.has(origin))
+          (requireOrigin
+            ? !allowed.has(origin) ||
+              (parsed.protocol !== "https:" &&
+                !["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname))
+            : !["localhost", "127.0.0.1", "[::1]"].includes(parsed.hostname) ||
+              (parsed.host !== request.headers.host && !allowed.has(origin)))
         )
           throw new Error();
       } catch {
@@ -1448,7 +1471,7 @@ export function createEpisodeWriteGuard(
           error: {
             code: "invalid_origin",
             message:
-              "Generation jobs accept requests from this local app only.",
+              "Generation jobs accept requests from the configured Astraified app only.",
           },
         });
       }
@@ -1462,7 +1485,10 @@ export const episodeWriteGuard = createEpisodeWriteGuard();
 export function createEpisodeRouter(options: EpisodeJobOptions = {}) {
   const router = express.Router();
   const service = new EpisodeJobService(options);
-  const writeGuard = createEpisodeWriteGuard(options.webOrigins);
+  const writeGuard = createEpisodeWriteGuard(
+    options.webOrigins,
+    options.requireOrigin,
+  );
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
